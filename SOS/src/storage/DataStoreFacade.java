@@ -42,7 +42,7 @@ public class DataStoreFacade {
 		}
 		catch(Exception ex)
 		{
-			throw new Exception("Failed to connect to database: " + ex.getMessage());
+			throw new Exception("Failed to connect to database.\nMore details: " + ex.getMessage());
 		}
 	}
 	
@@ -69,7 +69,7 @@ public class DataStoreFacade {
 
 		} catch (Exception ex) {
 			
-			throw new Exception("An error occured while trying to add a new role to the organization. More Details:" + ex.getMessage());
+			throw new Exception("An error occured while trying to add a new role to the organization.\n More Details:" + ex.getMessage());
 			
 		}
 		
@@ -101,15 +101,124 @@ public class DataStoreFacade {
 		}
 		catch(Exception ex)
 		{
-			throw new Exception("There was an error registering the new user. More Details: " + ex.getMessage());
+			throw new Exception("There was an error registering the new user.\nMore Details: " + ex.getMessage());
 		}
 		
 	}
 	
-	public void createNewEvent()
+	
+	/**
+	 * NOT FINISHED 
+	 * @param name
+	 * @param location
+	 * @param description
+	 * @param visibility
+	 * @param time
+	 * @param date
+	 * @param eventType
+	 * @param hostedBy
+	 * @throws Exception
+	 */
+	public void createNewEvent(String name, String location, String description, boolean visibility, Time time, Date date, int eventType, int hostedBy ) throws Exception
+	{
+		try
+		{
+			final String query = "CALL sos_storage.event_create(?,?,?,?,?,?,?,?)";
+			
+			CallableStatement procedure = connect.prepareCall(query);
+			
+			procedure.setString(1, name);
+			
+			
+			procedure.execute();
+		}
+		catch(Exception ex)
+		{
+			throw new Exception("There was an error registering the new user.\nMore Details: " + ex.getMessage());
+		}
+	}
+	
+	/**
+	 * NOT FINISHED
+	 * @param location
+	 */
+	public void filterEventsByLocation(String location)
 	{
 		
 	}
+	
+	/**
+	 * NOT FINISHED
+	 */
+	public void getEvents()
+	{
+		
+	}
+	
+	/**
+	 * Creates a new organization on the SOS system.
+	 * @param name The name of the organization.
+	 * @param description The description of the organization.
+	 * @param privacy The privacy of the organization (PUBLIC or PRIVATE).
+	 * @param requirements The requirements for joining the organization.
+	 * @param userID The user ID of the user creating the organization.
+	 * @throws Exception Throws an exception if there is an issue storing the organization into the database.
+	 */
+	public void createNewOrganization(String name, String description, String privacy, String requirements, int userID ) throws Exception
+	{
+		try
+		{
+			final String query = "CALL sos_storage.organization_create(?,?,?,?,?)";
+			
+			CallableStatement procedure = connect.prepareCall(query);
+			
+			procedure.setString(1, name);
+			procedure.setString(2, description);
+			procedure.setString(3, privacy);
+			procedure.setString(4, requirements);
+			procedure.setInt(5, userID);
+			
+			procedure.execute();
+		}
+		catch(Exception ex)
+		{
+			throw new Exception("There was an error creating the new organization\nMore Details: " + ex.getMessage());
+		}
+		finally
+		{
+			connect.close();
+		}
+	}
+	
+	/**
+	 * Saves the attendance of the user to a particular event in the SOS storage.
+	 * @param userID The ID of the user that is attending the event.
+	 * @param eventID The ID of the event that the user is attending.
+	 * @throws Exception Throws an exception if there is an issue in storing the attendance of the user in the database.
+	 */
+	public void saveUserAttendance(long userID,long eventID) throws Exception
+	{
+		try
+		{
+			final String query = "CALL sos_storage.store_attendance(?,?)";
+			
+			CallableStatement procedure = connect.prepareCall(query);
+	
+			procedure.setLong(1, userID);
+			procedure.setLong(2, eventID);
+			
+			procedure.execute();
+		}
+		catch(Exception ex)
+		{
+			throw new Exception("There was an error saving the attendance.\nMore Details: " + ex.getMessage());
+		}
+		finally
+		{
+			connect.close();
+		}
+	}
+	
 	
 	
 	
