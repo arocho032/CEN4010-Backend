@@ -219,6 +219,80 @@ public class DataStoreFacade {
 		}
 	}
 	
+	/**
+	 * Updates the information of the user to the given information
+	 * @param userID The ID of the user that will be updated in the database.
+	 * @param email The modified email assigned to the user in the database.
+	 * @param privacy The modified privacy assigned to the user in the database.
+	 * @throws Exception If the email is already present in the database under a different user then an exception is thrown.
+	 */
+	public void updateUserInformation(int userID, String email, String privacy) throws Exception
+	{
+		try
+		{
+			final String query = "Call sos_storage.update_user_information(?,?,?)";
+			
+			CallableStatement procedure = connect.prepareCall(query);
+			
+			procedure.setInt(1, userID);
+			procedure.setString(2, email);
+			procedure.setString(3, privacy);
+			
+			procedure.execute();
+			
+		}
+		catch(Exception ex)
+		{
+			throw new Exception("There was an error updating the user's information in the database.\nMore Details: " + ex.getMessage());
+		}
+		finally
+		{
+			connect.close();
+		}
+	}
+	
+	/**
+	 * Verifies the login of the user.
+	 * @param email The email that the user provides when logging in.
+	 * @param password The encrypted password the user provides when logging in.
+	 * @return A boolean verifying if the user has correct credentials to log into SOS.
+	 * @throws Exception Throws an exception if the credentials are in an invalid format.
+	 */
+	public boolean verifyUserLogin(String email, String password ) throws Exception
+	{
+		boolean result = false;
+		try
+		{
+			final String query = "CALL sos_storage.user_verify_login(?,?,?)";
+			
+			CallableStatement procedure = connect.prepareCall(query);
+			
+			procedure.setString(1, email);
+			procedure.setString(2, password);
+			
+			Boolean bool = new Boolean(result);
+			
+			procedure.setBoolean(3, bool);
+			
+			procedure.execute();
+			
+			result = procedure.getBoolean(3);
+			
+		}
+		catch(Exception ex)
+		{
+			throw new Exception("Invalid credentials.");
+		}
+		finally
+		{
+			connect.close();
+		}
+		
+		return result;
+	}
+	
+	
+	
 	
 	
 	

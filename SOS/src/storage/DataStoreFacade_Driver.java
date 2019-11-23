@@ -13,7 +13,7 @@ public class DataStoreFacade_Driver {
 		
 			//ds.registerNewUser("testing", "jdoe002@fiu.edu", "John", "jdoe002");
 			
-			ds.saveUserAttendance(5, 1);
+			System.out.println(ds.verifyUserLogin("jdoe002@fiu.edu", "testing"));
 		}
 		catch(Exception ex)
 		{
