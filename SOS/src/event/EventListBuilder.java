@@ -1,5 +1,8 @@
 package event;
 
+import storage.DataStoreFacade;
+
+
 /**
  * A Builder which creates new EventList objects. As other builders, it is 
  * used to decouple the process of creating a new EventList from the actual 
@@ -8,18 +11,32 @@ package event;
  */
 public class EventListBuilder {
 	
+	private EventList list;
+	
 	/**
 	 * Creates a new EventListBuilder to instantiate the new EventList.  
 	 */
-	public EventListBuilder() {};
+	public EventListBuilder() 
+	{
+		list = null;
+	}
 
-    /**
-     * Adds an Event value to the current EventList.
-     * @param addEventToList
-     *              the value to be added.
-     * @return
-     *              the current builder.
-     */
-    public EventListBuilder setAddeventtolist(String addEventToList) {return this;}
+    public EventList filterEventsByLocation(double lat, double lon) throws Exception
+    {
+    	try
+    	{
+    		DataStoreFacade ds = new DataStoreFacade();
+    	
+    		list = new EventList(ds.filterEventsByLocation(lat, lon));
+    		
+    		return list;
+    	}
+    	catch(Exception ex)
+    	{
+    		throw new Exception("An error occurred while attempting to filter events by location.\nMore Details: " + ex.getMessage());
+    	}
+    }
+    
+    
 	
 }

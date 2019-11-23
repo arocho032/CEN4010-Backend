@@ -1,6 +1,8 @@
 package storage;
 
 import java.sql.*;
+import java.text.*;
+import org.json.*;
 
 ///**
 // * A Façade object that acts as the interface for the SOS 
@@ -29,7 +31,7 @@ public class DataStoreFacade {
 	
 	/**
 	 * Attempts to connect to the Database.
-	 * @throws Exception
+	 * @throws Exception Throws an exception if the database connection fails.
 	 */
 	public DataStoreFacade() throws Exception
 	{
@@ -43,6 +45,22 @@ public class DataStoreFacade {
 		catch(Exception ex)
 		{
 			throw new Exception("Failed to connect to database.\nMore details: " + ex.getMessage());
+		}
+	}
+	
+	/**
+	 * Terminates connection to the database.
+	 * @throws Exception Throws an exception if database connection cannot be closed.
+	 */
+	public void terminateConnection() throws Exception
+	{
+		try
+		{
+			connect.close();
+		}
+		catch(Exception ex)
+		{
+			throw new Exception("There was an error disconnecting from the database.\nMore details:" + ex.getMessage());
 		}
 	}
 	
@@ -108,52 +126,108 @@ public class DataStoreFacade {
 	
 	
 	/**
-	 * NOT FINISHED 
-	 * @param name
-	 * @param location
-	 * @param description
-	 * @param visibility
-	 * @param time
-	 * @param date
-	 * @param eventType
-	 * @param hostedBy
-	 * @throws Exception
+	 * Creates a new event in the SOS system.
+	 * @param name The name of the event.
+	 * @param longCoordinate The longitude of the location where the event will take place.
+	 * @param latCoordinate The latitude of the location where the event will take place.
+	 * @param description The description of the event.
+	 * @param visibility The visibility of the event: True is visible, False is not visible
+	 * @param time The time when the event will take place.
+	 * @param date The date when the event will take place.
+	 * @param eventType The type of event being hosted.
+	 * @param hostedBy The organization that is hosting the event.
+	 * @throws Exception Throws an exception if the parameters are not in the expected format and if the organization hosting the event no longer exists.
 	 */
-	public void createNewEvent(String name, String location, String description, boolean visibility, Time time, Date date, int eventType, int hostedBy ) throws Exception
+	public void createNewEvent(String name, double longCoordinate, double latCoordinate, String description, boolean visibility, 
+							   String time, String date, int eventType, int hostedBy ) throws Exception
 	{
 		try
 		{
-			final String query = "CALL sos_storage.event_create(?,?,?,?,?,?,?,?)";
+			final String query = "CALL sos_storage.event_create(?, ?, ?, ?, ?, ?, ?, ?, ?);";
 			
 			CallableStatement procedure = connect.prepareCall(query);
 			
 			procedure.setString(1, name);
+			procedure.setDouble(2, longCoordinate);
+			procedure.setDouble(3, latCoordinate);
+			procedure.setString(4, description);
+			procedure.setBoolean(5, visibility);
+			
+			DateFormat transform = new SimpleDateFormat("hh:mm:ss a");
+			
+			Time sqlTime = new Time ((transform.parse(time)).getTime());
+			
+			transform = new SimpleDateFormat("MM/dd/yyyy");
+			
+			Date sqlDate = new Date (transform.parse(date).getTime());
+	
+			procedure.setTime(6,sqlTime );
+			procedure.setDate(7, sqlDate);
+			procedure.setInt(8, eventType);
+			procedure.setInt(9, hostedBy);
 			
 			
 			procedure.execute();
 		}
 		catch(Exception ex)
 		{
-			throw new Exception("There was an error registering the new user.\nMore Details: " + ex.getMessage());
+			throw new Exception("There was an error creating the new event.\nMore Details: " + ex.getMessage());
+		}
+		
+	}
+	
+	
+	
+	/**
+	 * Returns a list of JSON objects 
+	 * @param lat_coordinate The latitude of the location of interest.
+	 * @param long_coordinate The longitude of the location of interest.
+	 * @return The results from the database of the closest events.
+	 * @throws Exception An exception is thrown if their is a problem retrieving nearby events.
+	 */
+	public ResultSet filterEventsByLocation(double lat_coordinate, double long_coordinate) throws Exception
+	{
+		try
+		{
+			final String query = "CALL `sos_storage`.`filter_events_by_location`(?, ?)";
+			
+			CallableStatement procedure = connect.prepareCall(query);
+			
+			procedure.setDouble(1, lat_coordinate);
+			procedure.setDouble(2, long_coordinate);
+			
+			procedure.execute();
+			
+			ResultSet results = procedure.getResultSet();
+			
+			return results;
+
+		}
+		catch(Exception ex)
+		{
+			throw new Exception("There was an error while attempting to filter events by location.\nMore details: " + ex.getMessage());
+		}
+		
+	}
+	
+	/**
+	 * Retrieves a list of events according to the user.
+	 * @param user_id The user that is requesting the events.
+	 */
+	public void getEvents(int user_id) throws Exception
+	{
+		try
+		{
+			
+		}
+		catch(Exception ex)
+		{
+			throw new Exception("There was an error while retrieving the events.\nMore details:" + ex.getMessage());
 		}
 	}
 	
-	/**
-	 * NOT FINISHED
-	 * @param location
-	 */
-	public void filterEventsByLocation(String location)
-	{
-		
-	}
 	
-	/**
-	 * NOT FINISHED
-	 */
-	public void getEvents()
-	{
-		
-	}
+	
 	
 	/**
 	 * Creates a new organization on the SOS system.
@@ -184,10 +258,7 @@ public class DataStoreFacade {
 		{
 			throw new Exception("There was an error creating the new organization\nMore Details: " + ex.getMessage());
 		}
-		finally
-		{
-			connect.close();
-		}
+		
 	}
 	
 	/**
@@ -213,10 +284,7 @@ public class DataStoreFacade {
 		{
 			throw new Exception("There was an error saving the attendance.\nMore Details: " + ex.getMessage());
 		}
-		finally
-		{
-			connect.close();
-		}
+		
 	}
 	
 	/**
@@ -245,10 +313,7 @@ public class DataStoreFacade {
 		{
 			throw new Exception("There was an error updating the user's information in the database.\nMore Details: " + ex.getMessage());
 		}
-		finally
-		{
-			connect.close();
-		}
+		
 	}
 	
 	/**
@@ -282,10 +347,6 @@ public class DataStoreFacade {
 		catch(Exception ex)
 		{
 			throw new Exception("Invalid credentials.");
-		}
-		finally
-		{
-			connect.close();
 		}
 		
 		return result;
