@@ -1,5 +1,7 @@
 package event;
 
+import storage.DataStoreFacade;
+import org.json.*;
 
 /**
  * EventManager, which is a Singleton which manages all the Event functions. 
@@ -38,41 +40,126 @@ public class EventManager {
 	 }
 
 	 /**
-	  * Retrieves a list of Events in the for of an EventList. This is
-	  * done through an EventListBuilder.
-	  * @param event_ids
-	  * 	the ids of the Events to be added.
-	  * @return
-	  * 	the EventList containing the given Events.
+	  * Retrieves a list of events that are stored in the database.
+	  * @return A JSON array of events.
+	  * @throws Exception Throws an exception if anything fails while attempting to retrieve the events.
 	  */
-	 public EventList retrieveListOfEvents(int[] event_ids) {return null;}
+	 public JSONArray retrieveListOfEvents() throws Exception 
+	 {
+		 
+		 DataStoreFacade ds = new DataStoreFacade();
+		 
+		 try 
+		 {
+			 EventListBuilder builder = new EventListBuilder();
+			 
+			 return builder.getAllAvailableEvents().returnJSONList();
+		 }
+		 catch(Exception ex)
+		 {
+			 throw new Exception("Failed to retrieve list from the database.\nMore details: " + ex.getMessage());
+		 }
+		 
+	 }
 
 	/**
 	 * Creates a new Event from a json Event description. Done by
 	 * calling the EventBuilder class.
 	 * @param jsonString
-	 * 		the JSON object describing the new Event.
-	 * @return
-	 * 		a Event object with the given attributes. 
-	 */
-	 public Event createEvent(String jsonString) {return null;}
+	 * 		the JSON object describing the new Event. 
+	 * throws @Exception Throws exception when the fields given to create the event are invalid.
+	 */ 
+	 public void createEvent(String jsonString) throws Exception {
+		 
+		 DataStoreFacade ds = new DataStoreFacade();
+		 
+		 try
+		 {
+			 JSONObject json = new JSONObject(jsonString);
+		 
+			 EventBuilder builder = new EventBuilder();
+			 
+			 String name = json.getJSONObject("event").getString("eventName");
+			 String description = json.getJSONObject("event").getString("eventDescription");
+			 String date = json.getJSONObject("event").getString("eventDate");
+			 String visibility = json.getJSONObject("event").getString("eventVisibility");
+			 String time = json.getJSONObject("event").getString("eventTime");
+			 String eventType = json.getJSONObject("event").getString("eventType");
+			 String hostedBy = json.getJSONObject("event").getString("hostedBy");
+			 String latCoord = json.getJSONObject("event").getString("latitude");
+			 String longCoord = json.getJSONObject("event").getString("longitude");
+			 
+			 if ( !builder.attemptCreatingEvent(name, 
+					 description, 
+					 date, 
+					 Boolean.getBoolean(visibility), 
+					 time, 
+					 Integer.getInteger(eventType), 
+					 Integer.getInteger(hostedBy),
+					 Double.parseDouble(latCoord), 
+					 Double.parseDouble(longCoord)) )
+			 {
+				 throw new Exception("Invalid event fields.");
+			 }
+			 
+			 ds.createNewEvent(name, Double.parseDouble(longCoord), Double.parseDouble(latCoord), 
+					 			description, Boolean.getBoolean(visibility), time, date, 
+					 			Integer.getInteger(eventType), 
+					 			Integer.getInteger(hostedBy));
+		 }
+		 catch(Exception ex)
+		 {
+			 throw new Exception("Failed to create the event.\n More details: " + ex.getMessage());
+		 }
+		 
+		 ds.terminateConnection();
+		 
+	 }
 	 
 	 /**
-	  * Loads an Event with the given Event id. 
-	  * @param event_id
-	  * 	the id of the wanted Event.
-	  * @return
-	  * 	the Event with the corresponding id.
+	  * Gets event information based on the ID that is provided.
+	  * @param eventID The ID of the event that details are being requested.
+	  * @return A JSON object with the event details.
+	  * @throws Exception An exception is thrown if the event is not found in the database.
 	  */
-	 public Event getEventDetails(int event_id) {return null;}
+	 public JSONObject getEventDetails(int eventID) throws Exception 
+	 {
+		 DataStoreFacade ds = new DataStoreFacade();
+		 
+		 try
+		 {
+			 EventLoader loader = new EventLoader();
+			 
+			 return (loader.loadEventDetails(ds.retrieveEventDetails(eventID))).getJSONObject();
+		 }
+		 catch(Exception ex)
+		 {
+			 throw new Exception("There was an issue in retrieving the event details.\nMore details: " + ex.getMessage());
+		 }
+		 
+	 }
 	 
 	 /**
-	  * Sets the is_cancelled property of the given Event to
-	  * True. 
-	  * @param event_id
-	  * 	the wanted Event.
+	  * Cancels the given event.
+	  * @param event_id The event that is going to be cancelled.
+	  * @throws Exception Throws an exception if the event is not found in the database.
 	  */
-	 public void cancelEvent(int event_id) {}
+	 public void cancelEvent(int event_id) throws Exception
+	 {
+		 DataStoreFacade ds = new DataStoreFacade();
+		 
+		 try 
+		 {
+			 ds.cancelEvent(event_id);
+		 }
+		 catch(Exception ex)
+		 {
+			 throw new Exception("There was an issue in cancelling the event.\nMore details: " + ex.getMessage());
+		 }
+		 
+		 ds.terminateConnection();
+		 
+	 }
 	 
 	 /**
 	  * Marks a User as attending an Event by creating an entry on the 
@@ -80,8 +167,21 @@ public class EventManager {
 	  * @param user_id
 	  * 	the id of the User
 	  * @param event_id
-	  * 	the id of teh Event
+	  * 	the id of the Event
 	  */
-	 public void markAttendance(int user_id, int event_id) {}
+	 public void markAttendance(int userID, int eventID) throws Exception
+	 {
+		 DataStoreFacade ds = new DataStoreFacade();
+		 try
+		 {
+			 ds.saveUserAttendance(userID, eventID);
+		 }
+		 catch(Exception ex)
+		 {
+			 throw new Exception("Marking the attendance failed.\nMore details: " + ex.getMessage());
+		 }
+		 
+		 ds.terminateConnection();
+	 }
 	 
 }

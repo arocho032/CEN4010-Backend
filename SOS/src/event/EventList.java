@@ -1,14 +1,14 @@
 package event;
 
 import java.sql.ResultSet;
-import utils.ListHelper;
+import utils.JSONTranslator;
 import org.json.JSONArray;
 
 
 /**
  * A class that aggregates Events. 
  */
-public class EventList extends ListHelper {
+public class EventList {
 	
 	private JSONArray jsonList;
 	
@@ -24,12 +24,17 @@ public class EventList extends ListHelper {
 	{
 		try
 		{
-			jsonList = resultSetToJSON(results);
+			jsonList = JSONTranslator.resultSetToJSONArray(results);
 		}
 		catch(Exception ex)
 		{
 			throw new Exception("There was an error in generating the list of events.\nMore Details: " + ex.getMessage());
 		}
+	}
+	
+	public JSONArray returnJSONList()
+	{
+		return this.jsonList;
 	}
 	
 	

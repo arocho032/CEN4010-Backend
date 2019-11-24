@@ -211,13 +211,21 @@ public class DataStoreFacade {
 	}
 	
 	/**
-	 * Retrieves a list of events according to the user.
-	 * @param user_id The user that is requesting the events.
+	 * Gets all the events in the database that are not cancelled.
+	 * @return A result set with the events found in the database.
+	 * @throws Exception An exception is thrown when the procedure fails to retrieve the results from the database.
 	 */
-	public void getEvents(int user_id) throws Exception
+	public ResultSet getEvents() throws Exception
 	{
 		try
 		{
+			final String query = "CALL `sos_storage`.`get_events`();";
+			
+			CallableStatement procedure = connect.prepareCall(query);
+			
+			procedure.execute();
+			
+			return procedure.getResultSet();
 			
 		}
 		catch(Exception ex)
@@ -226,8 +234,58 @@ public class DataStoreFacade {
 		}
 	}
 	
+	/**
+	 * Requests to cancel the event in the database.
+	 * @param eventID The ID of the event that needs to be cancelled.
+	 * @throws Exception Throws an exception if the event could not be cancelled.
+	 */
+	public void cancelEvent(int eventID) throws Exception
+	{
+		try
+		{
+			String query = "CALL `sos_storage`.`cancel_event`(?);";
+			
+			CallableStatement procedure = connect.prepareCall(query);
+			
+			procedure.setInt(1, eventID);
+			
+			procedure.execute();
+			
+			
+		}
+		catch(Exception ex)
+		{
+			throw new Exception("There was an error while trying to cancel the event.\nMore details: " + ex.getMessage());
+		}
+	}
 	
-	
+	/**
+	 * Retrieves all the details for a certain event.
+	 * @param eventID The ID of the event that we want the details for.
+	 * @return The details of the events in the form of a result set.
+	 * @throws Exception Throws an exception if the event details were not found.
+	 */
+	public ResultSet retrieveEventDetails(int eventID) throws Exception
+	{
+		try
+		{
+			String query = "CALL `sos_storage`.`get_event_details`(?);";
+			
+			CallableStatement procedure = connect.prepareCall(query);
+			
+			procedure.setInt(1, eventID);
+			
+			procedure.execute();
+			
+			return procedure.getResultSet();
+			
+		}
+		catch(Exception ex)
+		{
+			throw new Exception("There was an error while trying to retrieve the details for the event.\nMore details: " + ex.getMessage());
+		}
+		
+	}
 	
 	/**
 	 * Creates a new organization on the SOS system.

@@ -9,97 +9,58 @@ package event;
  */
 public class EventBuilder {
 
+	private Event event;
+	
 	/**
 	 * Creates a new EventBuilder to instantiate the new Event.  
 	 */
-	public EventBuilder() {};
-	
-	/**
-	 * Checks the current Event, returning True if it is valid so far
-	 * and False otherwise.
-	 * @return
-	 * 		True, if the Event is valid so far.
-	 * 		False if otherwise. 
-	 */
-	protected boolean Validate() {return false;}
+	public EventBuilder() 
+	{
+		event = new Event();
+	};
 
 	/**
-	 * Adds a location value to the current Event.
-	 * @param location
-	 * 		the value to be added.
-	 * @return
-	 * 		the current builder.
+	 * Attempts to create an event from the given parameters
+	 * @param name The name of the event.
+	 * @param description The description of the event.
+	 * @param date The date of the event.
+	 * @param visibility The visibility of the event.
+	 * @param time The time of the event.
+	 * @param eventType the type of event.
+	 * @param hostedBy The organization who is hosting the event.
+	 * @param latCoordinate The latitude where the event will take place.
+	 * @param longCoordinate The longitude where the event will take place.
+	 * @return True or false depending on the status of the event creation.
 	 */
-	public EventBuilder setLocation(String location) {return this;}
+	public boolean attemptCreatingEvent(String name, String description, String date, boolean visibility, String time, int eventType, 
+						int hostedBy, double latCoordinate, double longCoordinate )
+	{
+		try
+		{
+			
+			if ( date.split("/").length != 3)
+			{
+				return false;
+			}
+			
+			if (time.split(":").length != 3)
+			{
+				return false;
+			}
+			
+			
+			
+			event = new Event(name, description, date, visibility, time, eventType, hostedBy, latCoordinate, longCoordinate);
+			
+			return true;
+		}
+		catch(Exception ex)
+		{
+			return false;
+		}
+		
+	}
 	
-	/**
-	 * Adds a description value to the current Event.
-	 * @param description
-	 * 		the value to be added.
-	 * @return
-	 * 		the current builder.
-	 */
-	public EventBuilder setDescription(String description) {return this;}
 	
-    /**
-     * Adds a date value to the current Event.
-     * @param date
-     *              the value to be added.
-     * @return
-     *              the current builder.
-     */
-    public EventBuilder setDate(String date) {return this;}
-	
-    /**
-     * Adds a visibility value to the current Event.
-     * @param visibility
-     *              the value to be added.
-     * @return
-     *              the current builder.
-     */
-    public EventBuilder setVisibility(String visibility) {return this;}
-    
-    /**
-     * Adds a name value to the current Event.
-     * @param name
-     *              the value to be added.
-     * @return
-     *              the current builder.
-     */
-    public EventBuilder setName(String name) {return this;}
-    
-    /**
-     * Adds a time value to the current Event.
-     * @param time
-     *              the value to be added.
-     * @return
-     *              the current builder.
-     */
-    public EventBuilder setTime(String time) {return this;} 
-
-    /**
-     * Adds a Event Type value to the current Event.
-     * @param eventType
-     *              the value to be added.
-     * @return
-     *              the current builder.
-     */
-    public EventBuilder setEventtype(String eventType) {return this;}
-    
-    /**
-     * Adds a host value to the current Event.
-     * @param host
-     *              the value to be added.
-     * @return
-     *              the current builder.
-     */
-    public EventBuilder setHost(String host) {return this;}
-    
-	/**
-	 * Finalizes the Event creation and returns it.
-	 * @return
-	 * 		returns the final Event.
-	 */
-	public Event BuildEvent() {return null;}
 
 }
