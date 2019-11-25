@@ -69,13 +69,14 @@ public class DataStoreFacade {
 	 * @param roleName The name that is given to the role.
 	 * @param organizationID The organization ID of the organization that the role belongs to.
 	 * @param userID The user ID of the user that will own the role.
+	 * @param privileges The list of privileges granted to the user for their particular role.
 	 * @throws Exception An exception is thrown when the new role fails to be stored in the SOS database.
 	 */
-	public void addNewRoleToOrganization(String roleName, int organizationID, int userID) throws Exception
+	public void addNewRoleToOrganization(String roleName, int organizationID, int userID, boolean[] privileges ) throws Exception
 	{
 		try {
 			
-			final String query = "CALL sos_storage.add_new_role(?,?,?)";
+			final String query = "CALL sos_storage.add_new_role(?,?,?,?,?,?,?,?)";
 			
 			CallableStatement procedure = connect.prepareCall(query);
 			
@@ -83,12 +84,124 @@ public class DataStoreFacade {
 			procedure.setInt(2, organizationID);
 			procedure.setInt(3, userID);
 			
+			for( int index = 0; index < privileges.length; index++ )
+			{
+				procedure.setBoolean(index + 4, privileges[index]);
+			}
+			
 			procedure.execute();
 
 		} catch (Exception ex) {
 			
 			throw new Exception("An error occured while trying to add a new role to the organization.\n More Details:" + ex.getMessage());
 			
+		}
+		
+	}
+	
+	/**
+	 * Allows the user to join an organization.
+	 * @param userID The ID of the user that wants to join an organization.
+	 * @param organizationID The ID of the organization that the user wants to join.
+	 * @throws Exception Throws an exception if the user tries to join an organization they already belong to or does not exist.
+	 */
+	public void joinOrganization(int userID, int organizationID) throws Exception
+	{
+		try
+		{
+			final String query = "CALL `sos_storage`.`join_organization`(?,?);";
+			
+			CallableStatement procedure = connect.prepareCall(query);
+			
+			procedure.setInt(1, userID);
+			procedure.setInt(2, organizationID);
+			
+			procedure.execute();
+			
+		}
+		catch(Exception ex)
+		{
+			throw new Exception("There was an error while trying to store the users joining of the organization.\nMore details: " + ex.getMessage());
+		}
+		
+		
+	}
+	
+	/**
+	 * Retrieves the information of the organization that is stored in the database.
+	 * @param organizationID The ID of the organization that the details were requested for.
+	 * @return The set of details found in the database.
+	 * @throws Exception Throws an exception if there is a problem retrieving the details for the specified information.
+	 */
+	public ResultSet retrieveOrganizationDetails(int organizationID) throws Exception
+	{
+		try
+		{
+			final String query ="CALL `sos_storage`.`get_organization_details`(?);";
+			
+			CallableStatement procedure = connect.prepareCall(query);
+			
+			procedure.setInt(1, organizationID);
+			
+			procedure.execute();
+			
+			return procedure.getResultSet();
+			
+		}
+		catch(Exception ex)
+		{
+			throw new Exception("An error occurred while executing the stored procedure for retrieving event details.\nMore details: " + ex.getMessage());
+		}
+	}
+	
+	/**
+	 * Retrieves all of the public organizations stored in the storage.
+	 * @return The set of all the public organizations located in the storage.
+	 * @throws Exception Throws an exception if their was an issue retrieving all of the organizations from the storage.
+	 */
+	public ResultSet retrievePublicOrganizations() throws Exception
+	{
+		try
+		{
+			final String query = "CALL `sos_storage`.`get_all_organizations`();";
+			
+			CallableStatement procedure = connect.prepareCall(query);
+			
+			procedure.execute();
+			
+			return procedure.getResultSet();
+					
+		}
+		catch(Exception ex)
+		{
+			throw new Exception("An error occurred while attempting to retrieve the public organizations from the storage.\nMore details: " + ex.getMessage());
+		}
+	}
+	
+	
+	/**
+	 * Retrieves all the organizations which the user belongs to,
+	 * @param userID The ID of the user that we want all the organizations for.
+	 * @return A set of organizations which the user belongs to within the SOS.
+	 * @throws Exception Throws an exception if their is an error with the connectivity to the storage of the system.
+	 */
+	public ResultSet retrieveOrganizationsForUser(int userID) throws Exception
+	{
+		try
+		{
+			final String query = "CALL `sos_storage`.`get_organizations_for_user`(?);";
+			
+			CallableStatement procedure = connect.prepareCall(query);
+			
+			procedure.setInt(1, userID);
+			
+			procedure.execute();
+			
+			return procedure.getResultSet();
+		}
+		catch(Exception ex)
+		{
+			throw new Exception("An error occurred while attempting to retrieve organizations for the user.\nMore details: " + ex.getMessage());
 		}
 		
 	}

@@ -7,61 +7,32 @@ package organization;
  */
 public class OrganizationBuilder {
 
+	Organization organization;
+	
 	/**
 	 * Creates a new OrganizationBuilder to instantiate the new Event.  
 	 */
-	public OrganizationBuilder() {};
+	public OrganizationBuilder() 
+	{
+		
+		organization = null;
+		
+	};
 
-	/**
-	 * Checks the current Organization, returning True if it is valid so far
-	 * and False otherwise.
-	 * @return
-	 * 		True, if the Organization is valid so far.
-	 * 		False if otherwise. 
-	 */
-	protected boolean ValidateOrganizationDetails() {return false;}
-
-    /**
-     * Adds a name value to the current Organization.
-     * @param name
-     *              the value to be added.
-     * @return
-     *              the current builder.
-     */
-    public OrganizationBuilder setName(String name) {return this;}
-    
-    /**
-     * Adds a description value to the current Organization.
-     * @param description
-     *              the value to be added.
-     * @return
-     *              the current builder.
-     */
-    public OrganizationBuilder setDescription(String description) {return this;}
-    
-    /**
-     * Adds a privacy value to the current Organization.
-     * @param privacy
-     *              the value to be added.
-     * @return
-     *              the current builder.
-     */
-    public OrganizationBuilder setPrivacy(String privacy) {return this;}  
-
-    /**
-     * Adds a requirements value to the current Organization.
-     * @param requirements
-     *              the value to be added.
-     * @return
-     *              the current builder.
-     */
-    public OrganizationBuilder setRequirements(String requirements) {return this;}
-    
-	/**
-	 * Finalizes the Organization creation and returns it.
-	 * @return
-	 * 		returns the final Organization.
-	 */
-	public Organization CreateNewOrganization() {return null;}
+	public boolean attemptToCreateAnOrganization(String name, String privacy, String description, String requirements)
+	{
+		boolean status = true;
+		
+		if (!privacy.equals("PUBLIC") && !privacy.equals("PRIVATE"))
+		{
+			return false;
+		}
+		
+		organization = new Organization(name, privacy, description, requirements);
+		
+		return status;
+	}
+	
+	
 
 }

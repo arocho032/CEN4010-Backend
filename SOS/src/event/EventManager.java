@@ -122,7 +122,7 @@ public class EventManager {
 	  * @return A JSON object with the event details.
 	  * @throws Exception An exception is thrown if the event is not found in the database.
 	  */
-	 public JSONObject getEventDetails(int eventID) throws Exception 
+	 public JSONObject loadEventDetails(int eventID) throws Exception 
 	 {
 		 DataStoreFacade ds = new DataStoreFacade();
 		 

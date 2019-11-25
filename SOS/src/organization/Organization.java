@@ -1,5 +1,10 @@
 package organization;
 
+import java.sql.*;
+import org.json.*;
+
+import utils.JSONTranslator;
+
 /**
  * A run-time representation of an Organization persistent object. 
  * This class is used as an intermediary for creation, retrieval, and 
@@ -8,10 +13,44 @@ package organization;
  */
 public class Organization {
 	
+	private String name;
+	private String description;
+	private String privacy;
+	private String requirements;
+	
+	private JSONObject jsonTranslation;
+	
+	
 	/**
 	 * Constructs a new Organization class. Called through the OrganizationBuilder
 	 * class. Attribute assignations are done through protected scope. 
 	 */
-	protected Organization() {}
+	protected Organization(String name, String description, String privacy, String requirements) 
+	{
+		
+		this.name = name;
+		this.description = description;
+		this.privacy = privacy;
+		this.requirements = requirements;
+		
+	}
+	
+	protected Organization(ResultSet results) throws Exception
+	{
+		try
+		{
+			jsonTranslation = JSONTranslator.resultSetToJSONObject(results);
+		}
+		catch(Exception ex)
+		{
+			throw new Exception("Failed to parse event to JSON.\nMore Details: " + ex.getMessage());
+		}
+		
+	}
+	
+	protected JSONObject getJSONObject()
+	{
+		return this.jsonTranslation;
+	}
 
 }
