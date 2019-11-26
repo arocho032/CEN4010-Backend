@@ -72,16 +72,16 @@ public class OrganizationManager {
 	 
 	 /**
 	  * Creates an organization in the SOS System.
-	  * @param jsonString A JSON string that has information about the organization we want to create.
+	  * @param json2 A JSON string that has information about the organization we want to create.
 	  * @throws Exception Throws an exception if their is a failure to create an organization.
 	  */
-	 public void createOrganization(String jsonString) throws Exception
+	 public void createOrganization(JSONObject json2) throws Exception
 	 {
 		 try
 		 {
 			OrganizationBuilder builder = new OrganizationBuilder();
 			
-			JSONObject json = new JSONObject(jsonString);
+			JSONObject json = json2;
 			
 			String name = json.getJSONObject("organization").getString("name");
 			String description = json.getJSONObject("organization").getString("description");

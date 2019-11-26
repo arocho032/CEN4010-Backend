@@ -1,6 +1,12 @@
 package user;
 
 import java.util.Map;
+import storage.DataStoreFacade;
+import utils.JSONTranslator;
+
+import org.json.*;
+
+import event.EventBuilder;
 
 /**
  * A Singleton class which managers all the User functions. This class
@@ -41,31 +47,101 @@ public class UserManager {
 	/**
 	 * Creates a User from a database-format entry. Done by
 	 * calling the UserLoader class.
-	 * @param sqlEntry
-	 * 		a sql entry for the given user.
+	 * @param userID The ID of the user that we want 
 	 * @return	a User object with the given attributes.
 	 */
-	public User LoadUser(String sqlEntry) {return null;}
+	public JSONObject LoadUser(int userID) throws Exception
+	{
+		try
+		{
+			DataStoreFacade ds = new DataStoreFacade();
+			
+			UserLoader loader = new UserLoader();
+			
+			return loader.LoadUser(ds.retrieveUserDetails(userID)).getJSON();
+			
+		}
+		catch(Exception ex)
+		{
+			throw new Exception("An error occurred while attempting to retrieve user details.\nMore details: " + ex.getMessage());
+		}
+	}
 	
 	/**
-	 * Updates a User object with the given changes. Done through
-	 * the UserUpdater class.
-	 * @param user
-	 * 		the User that will be updated.
-	 * @param change
-	 * 		a Map where the key is the variable
-	 * 		name and the value is the update.
+	 * Changes the details of the user in the SOS system.
+	 * @param userID The ID of the user that wants to change their information.
+	 * @param json2 The JSON string with the user information and their changes.
+	 * @throws Exception Throws an exception if an error occurs while attempting to change user information.
 	 */
-	public void ChangeUserDetails(User user, Map<String, String> change) {};
+	public void ChangeUserDetails(int userID, JSONObject json2) throws Exception
+	{
+		try
+		{
+			JSONObject json = json2;
+			 
+			 NewUserBuilder builder = new NewUserBuilder();
+			 
+			 
+			 String name = json.getJSONObject("user").getString("userName");
+			 String userName = json.getJSONObject("user").getString("userUserName");
+			 String password = json.getJSONObject("user").getString("userPassword");
+			 String privacy = json.getJSONObject("user").getString("userPrivacy");
+			 String email = json.getJSONObject("user").getString("userEmail");
+			 
+			 //TO DO: PASSWORD ENCRYPTION
+			 
+			 if ( !builder.attemptToCreateNewUser(name, userName, password, privacy, email) )
+			 {
+				 throw new Exception("There was an error assigning user fields.");
+			 }
+			 
+			 DataStoreFacade ds = new DataStoreFacade();
+			 
+			 ds.updateUserInformation(userID, email, privacy);
+		}
+		catch(Exception ex)
+		{
+			throw new Exception("There was an issue in updating the user's information.\nMore details: " + ex.getMessage());
+		}
+	};
 	
 	/**
-	 * Creates a new User from a json User description. Done by
-	 * calling the NewUserBuilder class.
-	 * @param jsonString
-	 * 		the JSON object describing the new User.
-	 * @return
-	 * 		a User object with the given attributes. 
+	 * Creates a new profile when the user registers to the SOS site.
+	 * @param input A JSON string representing the user's information.
+	 * @throws Exception Throws an exception if there was an issue creating the user's profile.
 	 */
-	public User CreateNewProfile(String jsonString) {return null;};
+	public void CreateNewProfile(JSONObject input) throws Exception
+	{
+		try
+		{
+			JSONObject json = input;
+			 
+			 NewUserBuilder builder = new NewUserBuilder();
+			 
+			 String name = json.getJSONObject("user").getString("userName");
+			 String userName = json.getJSONObject("user").getString("userUserName");
+			 String password = json.getJSONObject("user").getString("userPassword");
+			 String privacy = json.getJSONObject("user").getString("userPrivacy");
+			 String email = json.getJSONObject("user").getString("userEmail");
+
+			 //TO DO: PASSWORD ENCRYPTION
+			 
+			 if ( !builder.attemptToCreateNewUser(name, userName, password, privacy, email) )
+			 {
+				 throw new Exception("There was an error assigning user fields.");
+			 }
+			 
+			 DataStoreFacade ds = new DataStoreFacade();
+			 
+			 ds.registerNewUser(password, email, name, userName);
+			 
+		}
+		catch(Exception ex)
+		{
+			throw new Exception("There was an error creating a new User profile.\nMore details: " + ex.getMessage());
+		}
+		
+		
+	}
 	
 }

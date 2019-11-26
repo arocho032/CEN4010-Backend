@@ -13,69 +13,27 @@ package user;
  */
 public class NewUserBuilder {
 
+	User user;
+	
 	/**
 	 * Creates a new NewUserBuilder to instantiate the new User.  
 	 */
-	public NewUserBuilder() {};	
+	public NewUserBuilder() 
+	{
+		user = null;
+	}
 	
-	/**
-	 * Checks the current User, returning True if it is valid so far
-	 * and False otherwise.
-	 * @return
-	 * 		True, if the Event is valid so far.
-	 * 		False if otherwise. 
-	 */
-	protected boolean ValidateCredentials() {return false;}	
-	
-    /**
-     * Adds a name value to the current User.
-     * @param name
-     *              the value to be added.
-     * @return
-     *              the current builder.
-     */
-    public NewUserBuilder setName(String name) {return this;}
-    
-    /**
-     * Adds a username value to the current User.
-     * @param username
-     *              the value to be added.
-     * @return
-     *              the current builder.
-     */
-    public NewUserBuilder setUsername(String username) {return this;}
-
-    /**
-     * Adds a password value to the current User.
-     * @param password
-     *              the value to be added.
-     * @return
-     *              the current builder.
-     */
-    public NewUserBuilder setPassword(String password) {return this;}
- 
-    /**
-     * Adds a privacy value to the current User.
-     * @param privacy
-     *              the value to be added.
-     * @return
-     *              the current builder.
-     */
-    public NewUserBuilder setPrivacy(String privacy) {return this;}    
-    
-    /**
-     * Adds a email value to the current User.
-     * @param email
-     *              the value to be added.
-     * @return
-     *              the current builder.
-     */
-    public NewUserBuilder setEmail(String email) {return this;}
-    
-	/**
-	 * Finalizes the User creation and returns it.
-	 * @return
-	 * 		returns the final User.
-	 */
-	public User BuildUser() {return null;}
+	public boolean attemptToCreateNewUser(String setName, String setUserName, String setPassword, String setPrivacy, String setEmail) 
+	{
+		try
+		{
+			user = new User(setName, setUserName, setPassword, setPrivacy, setEmail);
+		}
+		catch(Exception ex)
+		{
+			return false;
+		}
+		
+		return true;
+	}
 }

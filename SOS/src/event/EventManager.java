@@ -53,7 +53,7 @@ public class EventManager {
 		 {
 			 EventListBuilder builder = new EventListBuilder();
 			 
-			 return builder.getAllAvailableEvents().returnJSONList();
+			 return builder.getAllAvailableEvents(ds.getEvents()).returnJSONList();
 		 }
 		 catch(Exception ex)
 		 {
@@ -61,21 +61,39 @@ public class EventManager {
 		 }
 		 
 	 }
+	 
+	 public JSONArray retrieveListOfEventsByLocation(double latitude, double longitude) throws Exception
+	 {
+		 
+		 try
+		 {
+			 DataStoreFacade ds = new DataStoreFacade();
+			 
+			 EventListBuilder builder = new EventListBuilder();
+			 
+			 return builder.filterEventsByLocation(ds.filterEventsByLocation(latitude, longitude)).returnJSONList();
+			 
+		 }
+		 catch(Exception ex)
+		 {
+			 throw new Exception("An error occurred while attempting to retrieve all events by location.\nMore details: " + ex.getMessage());
+		 }
+	 }
 
 	/**
 	 * Creates a new Event from a json Event description. Done by
 	 * calling the EventBuilder class.
-	 * @param jsonString
+	 * @param json2
 	 * 		the JSON object describing the new Event. 
 	 * throws @Exception Throws exception when the fields given to create the event are invalid.
 	 */ 
-	 public void createEvent(String jsonString) throws Exception {
+	 public void createEvent(JSONObject json2) throws Exception {
 		 
 		 DataStoreFacade ds = new DataStoreFacade();
 		 
 		 try
 		 {
-			 JSONObject json = new JSONObject(jsonString);
+			 JSONObject json = json2;
 		 
 			 EventBuilder builder = new EventBuilder();
 			 

@@ -1,6 +1,7 @@
 package event;
 
 import storage.DataStoreFacade;
+import java.sql.*;
 
 
 /**
@@ -28,16 +29,12 @@ public class EventListBuilder {
      * @return A list of events in JSON.
      * @throws Exception Throws an exception if the events are not successfully extracted from the database.
      */
-    public EventList filterEventsByLocation(double lat, double lon) throws Exception
+    public EventList filterEventsByLocation(ResultSet set) throws Exception
     {
     	try
     	{
-    		DataStoreFacade ds = new DataStoreFacade();
-    	
-    		list = new EventList(ds.filterEventsByLocation(lat, lon));
-    		
-    		ds.terminateConnection();
-    		
+    		list = new EventList(set);
+	
     		return list;
     	}
     	catch(Exception ex)
@@ -46,21 +43,17 @@ public class EventListBuilder {
     	}
     }
     
-    public EventList getAllAvailableEvents() throws Exception
+    public EventList getAllAvailableEvents(ResultSet set) throws Exception
     {
     	try
     	{
-    		DataStoreFacade ds = new DataStoreFacade();
-    		
-    		list = new EventList(ds.getEvents());
-    		
-    		ds.terminateConnection();
+    		list = new EventList(set);
     		
     		return list;
     	}
     	catch(Exception ex)
     	{
-    		throw new Exception("An error occurred while attempting to grab all available events.\nMore detials: " + ex.getMessage());
+    		throw new Exception("An error occurred while attempting to retrieve all available events.\nMore detials: " + ex.getMessage());
     	}
     }
     

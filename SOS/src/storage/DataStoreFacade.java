@@ -100,6 +100,33 @@ public class DataStoreFacade {
 	}
 	
 	/**
+	 * Retrieves the details from a given user stored in the DB.
+	 * @param userID The ID for the user that the details are requested for.
+	 * @return A set of details found in the storage.
+	 * @throws Exception Throws an exception if their is an issue connecting to the database.
+	 */
+	public ResultSet retrieveUserDetails(int userID) throws Exception
+	{
+		try
+		{
+			final String query = "CALL `sos_storage`.`retrieve_user_details`(?);";
+			
+			CallableStatement procedure = connect.prepareCall(query);
+			
+			procedure.setInt(1, userID);
+			
+			procedure.execute();
+			
+			return procedure.getResultSet();
+
+		}
+		catch(Exception ex)
+		{
+			throw new Exception("Failed to retrieve user details.\nMore details: " + ex.getMessage());
+		}
+	}
+	
+	/**
 	 * Allows the user to join an organization.
 	 * @param userID The ID of the user that wants to join an organization.
 	 * @param organizationID The ID of the organization that the user wants to join.

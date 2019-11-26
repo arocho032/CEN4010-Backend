@@ -22,5 +22,10 @@
   		<artifactId>json</artifactId>
   		<version>20090211</version>
   	</dependency>
+  	<dependency>
+  	<groupId>io.socket</groupId>
+  	<artifactId>socket.io-client</artifactId>
+  	<version>1.0.0</version>
+  	</dependency>
   </dependencies>
 </project>
