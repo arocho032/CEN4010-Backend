@@ -1,15 +1,21 @@
 package sosInterface;
 
 import com.corundumstudio.socketio.*;
+import com.corundumstudio.socketio.listener.ConnectListener;
 import com.corundumstudio.socketio.listener.DataListener;
+import com.corundumstudio.socketio.protocol.Packet;
 
 import org.json.JSONObject;
 import org.json.JSONArray;
+
+import utils.EnumerationsAndConstant;
 
 /** SOSServer communicates with the front-end for creation of events.
 * Also it is held responsible for managing user sessions and keeping
 * track of them, as well as dispatching messages through the system.
 */
+
+
 public class SOSServer {
 	
 	private Configuration config;
@@ -27,6 +33,8 @@ public class SOSServer {
 	{ 
 		try
 		{
+			config = new Configuration();
+			
 			config.setHostname(hostName);
 			config.setPort(portNumber);
 			
@@ -66,22 +74,53 @@ public class SOSServer {
     
 	public void ListenForEvents() 
 	{
+		
+		EnumerationsAndConstant enumeratoins = new EnumerationsAndConstant();
+		
 		server.addEventListener("userRegister", JSONObject.class, new DataListener<JSONObject>()
 				{
 					public void onData(final SocketIOClient client, JSONObject json, final AckRequest ackRequest)
 					{
-						if(ackRequest.isAckRequested())
-						{
-							ackRequest.sendAckData("Client message was delivered to server","yeah!");
-						}
+						System.out.println("User registration was requested");
 						
-						SOSDispatcher dispatcher = new SOSDispatcher(client, json, 1, "create");
+						System.out.println("JSON Obj: " + json.toString());
+						
+						SOSDispatcher dispatcher = new SOSDispatcher(client, json, , "create");
 						
 						dispatcher.Dispatch();
 					}
 				});
 		
+		server.addEventListener("", JSONObject.class, new DataListener<JSONObject>()
+				{
+					public void onData(final SocketIOClient client, JSONObject json, final AckRequest ackRequest)
+					{
+						System.out.println("User load requested.");
+						
+						System.out.println("JSON Obj: " + json.toString());
+						
+						SOSDipsatcher dispatcher = new SOSDispatcher(client, json, 1, );
+					}
+				});
+		server.addConnectListener(new ConnectListener() {
+
+			@Override
+			public void onConnect(SocketIOClient client) {
+				// TODO Auto-generated method stub
+				System.out.println("Someone is connected");
+			}
+			
+		});
 		
+		server.start();
+		
+		try {
+			server.wait(Integer.MAX_VALUE);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		
+		server.stop();
 		
 	}
 	

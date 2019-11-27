@@ -121,12 +121,11 @@ public class UserManager {
 			 String name = json.getJSONObject("user").getString("userName");
 			 String userName = json.getJSONObject("user").getString("userUserName");
 			 String password = json.getJSONObject("user").getString("userPassword");
-			 String privacy = json.getJSONObject("user").getString("userPrivacy");
 			 String email = json.getJSONObject("user").getString("userEmail");
 
 			 //TO DO: PASSWORD ENCRYPTION
 			 
-			 if ( !builder.attemptToCreateNewUser(name, userName, password, privacy, email) )
+			 if ( !builder.attemptToCreateNewUser(name, userName, password, "PUBLIC", email) )
 			 {
 				 throw new Exception("There was an error assigning user fields.");
 			 }

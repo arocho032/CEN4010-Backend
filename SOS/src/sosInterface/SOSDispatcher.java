@@ -143,6 +143,7 @@ public class SOSDispatcher {
 			status = false;
 			message = ex.getMessage();
 			client.sendEvent("failure", ex.getMessage());
+			System.out.println(ex.getMessage());
 		}
 	}
 	

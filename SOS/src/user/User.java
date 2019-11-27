@@ -44,11 +44,11 @@ public class User {
 		this.name = setName;
 		this.userName = setUserName;
 		this.password = setPassword;
-		
-		if(setPrivacy != "PUBLIC" || setPrivacy != "PRIVATE")
-		{
-			throw new Exception("Incorrect format for privacy value.");
-		}
+//		
+//		if(setPrivacy != "PUBLIC" || setPrivacy != "PRIVATE")
+//		{
+//			throw new Exception("Incorrect format for privacy value.");
+//		}
 		
 		this.privacy = setPrivacy;
 		
