@@ -75,8 +75,6 @@ public class SOSServer {
 	public void ListenForEvents() 
 	{
 		
-		EnumerationsAndConstant enumeratoins = new EnumerationsAndConstant();
-		
 		server.addEventListener("userRegister", JSONObject.class, new DataListener<JSONObject>()
 				{
 					public void onData(final SocketIOClient client, JSONObject json, final AckRequest ackRequest)
@@ -85,13 +83,13 @@ public class SOSServer {
 						
 						System.out.println("JSON Obj: " + json.toString());
 						
-						SOSDispatcher dispatcher = new SOSDispatcher(client, json, , "create");
+						SOSDispatcher dispatcher = new SOSDispatcher(client, json, "create");
 						
-						dispatcher.Dispatch();
+						dispatcher.Dispatch(EnumerationsAndConstant.REQUEST_TYPE.USER);
 					}
 				});
 		
-		server.addEventListener("", JSONObject.class, new DataListener<JSONObject>()
+		server.addEventListener("userLoadUser", JSONObject.class, new DataListener<JSONObject>()
 				{
 					public void onData(final SocketIOClient client, JSONObject json, final AckRequest ackRequest)
 					{
@@ -99,9 +97,194 @@ public class SOSServer {
 						
 						System.out.println("JSON Obj: " + json.toString());
 						
-						SOSDipsatcher dispatcher = new SOSDispatcher(client, json, 1, );
+						SOSDispatcher dispatcher = new SOSDispatcher(client, json, "load" );
+						
+						dispatcher.Dispatch(EnumerationsAndConstant.REQUEST_TYPE.USER);
 					}
 				});
+		
+		server.addEventListener("userUpdateProfile", JSONObject.class, new DataListener<JSONObject>() {
+			
+			public void  onData(final SocketIOClient client, JSONObject json, final AckRequest ackRequest)
+			{
+				System.out.println("User update requested.");
+				
+				System.out.println("JSON Obj: " + json.toString());
+				
+				SOSDispatcher dispatcher = new SOSDispatcher(client, json, "update");
+				
+				dispatcher.Dispatch(EnumerationsAndConstant.REQUEST_TYPE.USER);
+			}
+		});
+		
+		server.addEventListener("eventCreate", JSONObject.class, new DataListener<JSONObject>() {
+			
+			public void onData(final SocketIOClient client, JSONObject json, final AckRequest ackRequest)
+			{
+				System.out.println("Event create requested.");
+				
+				System.out.println("JSON obj: " + json.toString());
+				
+				SOSDispatcher dispatcher = new SOSDispatcher(client, json, "create");
+				
+				dispatcher.Dispatch(EnumerationsAndConstant.REQUEST_TYPE.EVENT);
+			}
+		});
+		
+		server.addEventListener("eventLoadEvent", JSONObject.class, new DataListener<JSONObject>() {
+			
+			public void onData(final SocketIOClient client, JSONObject json, final AckRequest ackRequest)
+			{
+				System.out.println("Load chosen event requested.");
+				
+				System.out.println("JSON obj: " + json.toString());
+				
+				SOSDispatcher dispatcher = new SOSDispatcher(client, json, "loadOne");
+				
+				dispatcher.Dispatch(EnumerationsAndConstant.REQUEST_TYPE.EVENT);
+			}
+		});
+		
+		server.addEventListener("eventLoadAllEvent", JSONObject.class, new DataListener<JSONObject>() {
+			
+			public void onData(final SocketIOClient client, JSONObject json, final AckRequest ackRequest)
+			{
+				System.out.println("Load all events requested.");
+				
+				System.out.println("JSON obj: " + json.toString());
+				
+				SOSDispatcher dispatcher = new SOSDispatcher(client, json, "loadAll");
+				
+				dispatcher.Dispatch(EnumerationsAndConstant.REQUEST_TYPE.EVENT);
+			}
+		});
+		
+		server.addEventListener("eventLoadEventLocation", JSONObject.class, new DataListener<JSONObject>() {
+			
+			public void onData(final SocketIOClient client, JSONObject json, final AckRequest ackRequest)
+			{
+				System.out.println("Load events by location requested.");
+				
+				System.out.println("JSON obj: " + json.toString());
+				
+				SOSDispatcher dispatcher = new SOSDispatcher(client, json, "loadByLocation");
+				
+				dispatcher.Dispatch(EnumerationsAndConstant.REQUEST_TYPE.EVENT);
+			}
+		});
+		
+		server.addEventListener("eventCancellation", JSONObject.class, new DataListener<JSONObject>() {
+			
+			public void onData(final SocketIOClient client, JSONObject json, final AckRequest ackRequest)
+			{
+				System.out.println("Event cancellation requested.");
+				
+				System.out.println("JSON obj: " + json.toString());
+				
+				SOSDispatcher dispatcher = new SOSDispatcher(client, json, "cancel");
+				
+				dispatcher.Dispatch(EnumerationsAndConstant.REQUEST_TYPE.EVENT);
+			}
+		});
+		
+		server.addEventListener("eventAttend", JSONObject.class, new DataListener<JSONObject>() {
+			
+			public void onData(final SocketIOClient client, JSONObject json, final AckRequest ackRequest)
+			{
+				System.out.println("Event attendance requested.");
+				
+				System.out.println("JSON obj: " + json.toString());
+				
+				SOSDispatcher dispatcher = new SOSDispatcher(client, json, "attend");
+				
+				dispatcher.Dispatch(EnumerationsAndConstant.REQUEST_TYPE.EVENT);
+			}
+		});
+		
+		server.addEventListener("organizationCreate", JSONObject.class, new DataListener<JSONObject>() {
+			
+			public void onData(final SocketIOClient client, JSONObject json, final AckRequest ackRequest)
+			{
+				System.out.println("Organization create requested.");
+				
+				System.out.println("JSON obj: " + json.toString());
+				
+				SOSDispatcher dispatcher = new SOSDispatcher(client, json, "create");
+				
+				dispatcher.Dispatch(EnumerationsAndConstant.REQUEST_TYPE.ORGANIZATION);
+			}
+		});
+		
+		server.addEventListener("organizationLoadOrganization", JSONObject.class, new DataListener<JSONObject>() {
+			
+			public void onData(final SocketIOClient client, JSONObject json, final AckRequest ackRequest)
+			{
+				System.out.println("Load selected organization requested.");
+				
+				System.out.println("JSON obj: " + json.toString());
+				
+				SOSDispatcher dispatcher = new SOSDispatcher(client, json, "loadOne");
+				
+				dispatcher.Dispatch(EnumerationsAndConstant.REQUEST_TYPE.ORGANIZATION);
+			}
+		});
+		
+		server.addEventListener("organizationLoadAll", JSONObject.class, new DataListener<JSONObject>() {
+			
+			public void onData(final SocketIOClient client, JSONObject json, final AckRequest ackRequest)
+			{
+				System.out.println("Load all organizations requested.");
+				
+				System.out.println("JSON obj: " + json.toString());
+				
+				SOSDispatcher dispatcher = new SOSDispatcher(client, json, "loadAll");
+				
+				dispatcher.Dispatch(EnumerationsAndConstant.REQUEST_TYPE.ORGANIZATION);
+			}
+		});
+		
+		server.addEventListener("organizationLoadByUser", JSONObject.class, new DataListener<JSONObject>() {
+			
+			public void onData(final SocketIOClient client, JSONObject json, final AckRequest ackRequest)
+			{
+				System.out.println("Load all organizations by user requested.");
+				
+				System.out.println("JSON obj: " + json.toString());
+				
+				SOSDispatcher dispatcher = new SOSDispatcher(client, json, "loadByUser");
+				
+				dispatcher.Dispatch(EnumerationsAndConstant.REQUEST_TYPE.ORGANIZATION);
+			}
+		});
+		
+		server.addEventListener("organizationJoin", JSONObject.class, new DataListener<JSONObject>() {
+			
+			public void onData(final SocketIOClient client, JSONObject json, final AckRequest ackRequest)
+			{
+				System.out.println("Join organization requested.");
+				
+				System.out.println("JSON obj: " + json.toString());
+				
+				SOSDispatcher dispatcher = new SOSDispatcher(client, json, "join");
+				
+				dispatcher.Dispatch(EnumerationsAndConstant.REQUEST_TYPE.ORGANIZATION);
+			}
+		});
+		
+		server.addEventListener("organizationGrantRole", JSONObject.class, new DataListener<JSONObject>() {
+			
+			public void onData(final SocketIOClient client, JSONObject json, final AckRequest ackRequest)
+			{
+				System.out.println("granting new role requested.");
+				
+				System.out.println("JSON obj: " + json.toString());
+				
+				SOSDispatcher dispatcher = new SOSDispatcher(client, json, "grantRole");
+				
+				dispatcher.Dispatch(EnumerationsAndConstant.REQUEST_TYPE.ORGANIZATION);
+			}
+		});
+		
 		server.addConnectListener(new ConnectListener() {
 
 			@Override

@@ -2,6 +2,6 @@ package utils;
 
 public class EnumerationsAndConstant {
 	
-	public enum REQUEST_TYPE {USER, EVENT, ORGANIZATION};
+	public static enum REQUEST_TYPE {USER, EVENT, ORGANIZATION};
 
 }

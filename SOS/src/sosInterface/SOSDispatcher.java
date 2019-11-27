@@ -8,8 +8,11 @@ import com.corundumstudio.socketio.*;
 import com.corundumstudio.socketio.protocol.Packet;
 
 import user.UserManager;
+import utils.EnumerationsAndConstant;
 import organization.OrganizationManager;
 import event.EventManager;
+
+import utils.EnumerationsAndConstant;
 
 /**
  * A Command class which propagates the front-end requests
@@ -29,10 +32,9 @@ public class SOSDispatcher {
 	private String command;
 	private JSONObject jsonMsg;
 	private SocketIOClient client;
-	private int typeOfRequest;
 	
 	
-	public SOSDispatcher(SocketIOClient client, JSONObject json, int typeOfRequest, String command)
+	public SOSDispatcher(SocketIOClient client, JSONObject json, String command)
 	{
 		try
 		{
@@ -40,7 +42,6 @@ public class SOSDispatcher {
 			message = "";
 			jsonMsg = json;
 			this.command = command;
-			this.typeOfRequest = typeOfRequest;
 			this.client = client;
 		}
 		catch(Exception ex)
@@ -65,16 +66,16 @@ public class SOSDispatcher {
 	/**
 	* The method for dispatching events.
 	*/
-	public void Dispatch() 
+	public void Dispatch(EnumerationsAndConstant.REQUEST_TYPE request) 
 	{
 		status = true;
-		switch(typeOfRequest)
+		switch(request)
 		{
-			case 1:
+			case USER:
 				dispatchUserEvents(this.command);
 				break;
 				
-			case 2:
+			case EVENT:
 				dispatchEventEvents(this.command);
 				break;
 				
@@ -84,11 +85,11 @@ public class SOSDispatcher {
 		}
 	}
 	
-	private void dispatchUserEvents(String eventName)
+	private void dispatchUserEvents(String userCommand)
 	{
 		try
 		{
-			switch(eventName)
+			switch(userCommand)
 			{
 				
 				case "create":
@@ -147,14 +148,14 @@ public class SOSDispatcher {
 		}
 	}
 	
-	private void dispatchEventEvents(String eventName)
+	private void dispatchEventEvents(String eventCommand)
 	{
 		try
 		{
 			
 			EventManager manager = EventManager.instance();
 			
-			switch(eventName)
+			switch(eventCommand)
 			{
 				
 				case "create":
@@ -245,14 +246,14 @@ public class SOSDispatcher {
 		}
 	}
 	
-	private void dispatchOrganizationEvents(String eventName)
+	private void dispatchOrganizationEvents(String organizationCommand)
 	{
 		try
 		{
 			
 			OrganizationManager manager = OrganizationManager.instance();
 			
-			switch(eventName)
+			switch(organizationCommand)
 			{
 				
 				case "create":
