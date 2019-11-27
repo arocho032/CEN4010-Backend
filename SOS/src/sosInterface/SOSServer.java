@@ -1,9 +1,7 @@
 package sosInterface;
 
-import io.socket.client.IO;
-import io.socket.client.*;
-import io.socket.emitter.Emitter;
-import okhttp3.Dispatcher;
+import com.corundumstudio.socketio.*;
+import com.corundumstudio.socketio.listener.DataListener;
 
 import org.json.JSONObject;
 import org.json.JSONArray;
@@ -14,7 +12,9 @@ import org.json.JSONArray;
 */
 public class SOSServer {
 	
-	Socket socket;
+	private Configuration config;
+	
+	private SocketIOServer server;
 	
 	/**
  	* The constructor could be made private
@@ -23,15 +23,18 @@ public class SOSServer {
  	* impossible to create instances of
  	* SOSServer subclasses.
 	*/
-	public SOSServer(String uri) throws Exception
+	public SOSServer(String hostName, int portNumber) throws Exception
 	{ 
 		try
 		{
-			socket = IO.socket(uri);
+			config.setHostname(hostName);
+			config.setPort(portNumber);
+			
+			server =  new SocketIOServer(config);
 		}
 		catch(Exception ex)
 		{
-			throw new Exception("There was an issue connecting to the given URI.\nMore details: " + ex.getMessage());
+			throw new Exception("There was an issue establishing the server.\nMore details: " + ex.getMessage());
 		}
 	};
 
@@ -45,12 +48,12 @@ public class SOSServer {
 	 * @return The unique instance of this
 	 * class.
 	 */
-	 static public SOSServer instance(String uri) throws Exception
+	 static public SOSServer instance(String hostName, int portNumber) throws Exception
 	 {
 		 try
 		 {
 		 if (null == _instance) {
-			 _instance = new SOSServer(uri);
+			 _instance = new SOSServer(hostName, portNumber);
 		 }
 		 	return _instance;
 		 }
@@ -63,19 +66,22 @@ public class SOSServer {
     
 	public void ListenForEvents() 
 	{
-		this.socket.on("register", new Emitter.Listener() {
-			
-			public void call(Object... args) {
-				
-				JSONObject register = (JSONObject)args[0];
-				
-				SOSDispatcher dispatch = new SOSDispatcher((String)args[1]);
-				
-				dispatch.Dispatch("create", 1, register);
-				
-			}
-			
-		});
+		server.addEventListener("userRegister", JSONObject.class, new DataListener<JSONObject>()
+				{
+					public void onData(final SocketIOClient client, JSONObject json, final AckRequest ackRequest)
+					{
+						if(ackRequest.isAckRequested())
+						{
+							ackRequest.sendAckData("Client message was delivered to server","yeah!");
+						}
+						
+						SOSDispatcher dispatcher = new SOSDispatcher(client, json, 1, "create");
+						
+						dispatcher.Dispatch();
+					}
+				});
+		
+		
 		
 	}
 	

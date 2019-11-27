@@ -50,16 +50,23 @@ public class OrganizationManager {
 	  * 	the unique id of the Organization
 	  * @param roleName
 	  * 	the name of the assigned Role.
-	  * @param privIds
+	  * @param privs
 	  * 	the unique ids of the Privileges given to the User.
 	  */
-	 public void grantRole(int userId, int orgId, String roleName, boolean[] privIds) throws Exception
+	 public void grantRole(int userId, int orgId, String roleName, JSONArray privs) throws Exception
 	 {
 		 try
 		 {
 			 DataStoreFacade ds = new DataStoreFacade();
 			 
-			 ds.addNewRoleToOrganization(roleName, orgId, userId, privIds);
+			 boolean[] privMatrix = new boolean[5];
+			 
+			 for(int index = 0; index < privs.length(); index++)
+			 {
+				 privMatrix[index] = privs.getBoolean(index);
+			 }
+			 
+			 ds.addNewRoleToOrganization(roleName, orgId, userId, privMatrix);
 			 
 			 ds.terminateConnection();
 		 }

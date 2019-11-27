@@ -4,8 +4,9 @@ import java.util.ArrayList;
 
 import org.json.*;
 
-import io.socket.client.IO;
-import io.socket.client.Socket;
+import com.corundumstudio.socketio.*;
+import com.corundumstudio.socketio.protocol.Packet;
+
 import user.UserManager;
 import organization.OrganizationManager;
 import event.EventManager;
@@ -25,13 +26,22 @@ public class SOSDispatcher {
 	
 	private boolean status;
 	private String message;
-	private Socket socket;
+	private String command;
+	private JSONObject jsonMsg;
+	private SocketIOClient client;
+	private int typeOfRequest;
 	
-	public SOSDispatcher(String uri)
+	
+	public SOSDispatcher(SocketIOClient client, JSONObject json, int typeOfRequest, String command)
 	{
 		try
 		{
-			socket = IO.socket(uri);
+			status = true;
+			message = "";
+			jsonMsg = json;
+			this.command = command;
+			this.typeOfRequest = typeOfRequest;
+			this.client = client;
 		}
 		catch(Exception ex)
 		{
@@ -40,6 +50,7 @@ public class SOSDispatcher {
 		}
 		
 	}
+	
 	
 	public boolean getStatus()
 	{
@@ -54,26 +65,26 @@ public class SOSDispatcher {
 	/**
 	* The method for dispatching events.
 	*/
-	public void Dispatch(String eventName, int typeOfRequest, Object... input ) 
+	public void Dispatch() 
 	{
 		status = true;
 		switch(typeOfRequest)
 		{
 			case 1:
-				dispatchUserEvents(eventName);
+				dispatchUserEvents(this.command);
 				break;
 				
 			case 2:
-				dispatchEventEvents(eventName);
+				dispatchEventEvents(this.command);
 				break;
 				
 			default:
-				dispatchOrganizationEvents(eventName);
+				dispatchOrganizationEvents(this.command);
 				break;
 		}
 	}
 	
-	private void dispatchUserEvents(String eventName, Object... input)
+	private void dispatchUserEvents(String eventName)
 	{
 		try
 		{
@@ -85,7 +96,7 @@ public class SOSDispatcher {
 					{
 						UserManager manager = UserManager.instance();
 				
-						manager.CreateNewProfile((JSONObject)input[0]);		
+						manager.CreateNewProfile(jsonMsg);		
 					}
 					catch(Exception ex)
 					{
@@ -98,11 +109,11 @@ public class SOSDispatcher {
 					{
 						UserManager manager = UserManager.instance();
 				
-						JSONObject json = (JSONObject)input[0];
 						
-						int userID = json.getInt("userID");
 						
-						socket.emit("loadedUser", manager.LoadUser(userID) );
+						int userID = jsonMsg.getInt("userID");
+						
+						client.sendEvent("userLoadDetails", manager.LoadUser(userID));
 					}
 					catch(Exception ex)
 					{
@@ -114,12 +125,10 @@ public class SOSDispatcher {
 					try
 					{
 						UserManager manager = UserManager.instance();
-				
-						JSONObject json = (JSONObject)input[0];
 						
-						int userID = json.getInt("userID");
+						int userID = jsonMsg.getInt("userID");
 						
-						manager.ChangeUserDetails(userID, json);
+						manager.ChangeUserDetails(userID, jsonMsg);
 					}
 					catch(Exception ex)
 					{
@@ -133,20 +142,16 @@ public class SOSDispatcher {
 		{
 			status = false;
 			message = ex.getMessage();
-			
-			socket.emit("failure", message);
-			
+			client.sendEvent("failure", ex.getMessage());
 		}
 	}
 	
-	private void dispatchEventEvents(String eventName, Object... input)
+	private void dispatchEventEvents(String eventName)
 	{
 		try
 		{
 			
 			EventManager manager = EventManager.instance();
-			
-			JSONObject json = (JSONObject)input[0];
 			
 			switch(eventName)
 			{
@@ -154,7 +159,7 @@ public class SOSDispatcher {
 				case "create":
 					try
 					{
-						manager.createEvent(json);
+						manager.createEvent(jsonMsg);
 						
 					}
 					catch(Exception ex)
@@ -166,9 +171,9 @@ public class SOSDispatcher {
 				case "loadOne":
 					try
 					{	
-						int eventID = json.getInt("eventID");
+						int eventID = jsonMsg.getInt("eventID");
 						
-						socket.emit("eventDetailsResponse", manager.loadEventDetails(eventID));
+						client.sendEvent("eventLoadDetails", manager.loadEventDetails(eventID));
 					}
 					catch(Exception ex)
 					{
@@ -179,7 +184,7 @@ public class SOSDispatcher {
 				case "loadAll":
 					try
 					{
-						socket.emit("allEventsResponse", manager.retrieveListOfEvents());
+						client.sendEvent("eventLoadAllEvents", manager.retrieveListOfEvents());
 					}
 					catch(Exception ex)
 					{
@@ -190,11 +195,12 @@ public class SOSDispatcher {
 				case "loadByLocation":
 					try
 					{
-						double latitude = json.getDouble("latitude");
+						double latitude = jsonMsg.getDouble("latitude");
 						
-						double longitude = json.getDouble("longitude");
+						double longitude = jsonMsg.getDouble("longitude");
 						
-						socket.emit("allEventsResponse", manager.retrieveListOfEventsByLocation(latitude, longitude));
+						client.sendEvent("eventLoadByLocation", manager.retrieveListOfEventsByLocation(latitude, longitude));
+						
 					}
 					catch(Exception ex)
 					{
@@ -203,7 +209,7 @@ public class SOSDispatcher {
 				case "cancel":
 					try
 					{	
-						int eventID = json.getInt("eventID");
+						int eventID = jsonMsg.getInt("eventID");
 						
 						manager.cancelEvent(eventID);
 					}
@@ -215,11 +221,11 @@ public class SOSDispatcher {
 				case "attend":
 					try
 					{	
-						int eventID = json.getInt("eventID");
+						int eventID = jsonMsg.getJSONObject("event").getInt("eventID");
 						
-						JSONObject user = (JSONObject)input[2];
+						int userID = jsonMsg.getJSONObject("user").getInt("userID");
 						
-						manager.markAttendance(user.getInt("userID"), eventID);
+						manager.markAttendance(userID, eventID);
 					}
 					catch(Exception ex)
 					{
@@ -233,19 +239,17 @@ public class SOSDispatcher {
 			status = false;
 			message = ex.getMessage();
 			
-			socket.emit("failure", message);
+			client.sendEvent("failure", ex.getMessage());
 			
 		}
 	}
 	
-	private void dispatchOrganizationEvents(String eventName, Object... input)
+	private void dispatchOrganizationEvents(String eventName)
 	{
 		try
 		{
 			
 			OrganizationManager manager = OrganizationManager.instance();
-			
-			JSONObject json = (JSONObject)input[0];
 			
 			switch(eventName)
 			{
@@ -253,8 +257,7 @@ public class SOSDispatcher {
 				case "create":
 					try
 					{
-						manager.createOrganization(json);
-						
+						manager.createOrganization(jsonMsg);
 					}
 					catch(Exception ex)
 					{
@@ -265,9 +268,9 @@ public class SOSDispatcher {
 				case "loadOne":
 					try
 					{	
-						int organizationID = json.getInt("organizationID");
+						int organizationID = jsonMsg.getInt("organizationID");
 						
-						socket.emit("loadOrganizationResponse", manager.loadOrganizationDetails(organizationID));
+						client.sendEvent("organizationLoadOne", manager.loadOrganizationDetails(organizationID));
 					}
 					catch(Exception ex)
 					{
@@ -278,7 +281,7 @@ public class SOSDispatcher {
 				case "loadAll":
 					try
 					{
-						socket.emit("allOrganizationResponse", manager.getAllOrganizations());
+						client.sendEvent("organizationLoadAll", manager.getAllOrganizations());
 					}
 					catch(Exception ex)
 					{
@@ -289,9 +292,7 @@ public class SOSDispatcher {
 				case "loadByUser":
 					try
 					{
-						JSONObject user = (JSONObject)input[2];
-						
-						socket.emit("organizationByUserResponse", manager.getAllOrganizations(user.getInt("userID")));
+						client.sendEvent("organizationLoadByUser", manager.getAllOrganizations(jsonMsg.getJSONObject("user").getInt("userID")));
 					}
 					catch(Exception ex)
 					{
@@ -300,11 +301,9 @@ public class SOSDispatcher {
 				case "join":
 					try
 					{	
-						int organizationID = json.getInt("organizationID");
+						int organizationID = jsonMsg.getJSONObject("organization").getInt("organizationID");
 						
-						JSONObject user = (JSONObject)input[2];
-						
-						manager.joinOrganization(user.getInt("userID"), organizationID);
+						manager.joinOrganization(jsonMsg.getJSONObject("user").getInt("userID"), organizationID);
 					}
 					catch(Exception ex)
 					{
@@ -314,13 +313,15 @@ public class SOSDispatcher {
 				case "grantRole":
 					try
 					{	
-						int organizationID = json.getInt("organizationID");
+						int organizationID = jsonMsg.getJSONObject("organization").getInt("organizationID");
 						
-						JSONObject user = (JSONObject)input[2];
+						String roleName = jsonMsg.getJSONObject("role").getString("roleName");
 						
-						JSONObject role = (JSONObject)input[3];
+						int userID = jsonMsg.getJSONObject("user").getInt("userID");
 						
-						manager.grantRole(user.getInt("userID"), organizationID, role.getString("roleName"), );
+						JSONArray privs = jsonMsg.getJSONArray("privIDs");
+						
+						manager.grantRole(userID, organizationID, roleName, privs);
 					}
 					catch(Exception ex)
 					{
@@ -334,8 +335,7 @@ public class SOSDispatcher {
 			status = false;
 			message = ex.getMessage();
 			
-			socket.emit("failure", message);
-			
+			client.sendEvent("Failure", ex.getMessage());
 		}
 	}
 	
