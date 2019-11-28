@@ -26,7 +26,7 @@ public class DataStoreFacade {
 	
 	final private String host = "localhost:3306";
 	final private String user = "root";
-	final private String password = "SOSDBCEN4010!";
+	final private String password = "SOSDBCEN4010";
 	
 	
 	/**
