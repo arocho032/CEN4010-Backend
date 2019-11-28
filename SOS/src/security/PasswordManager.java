@@ -1,11 +1,21 @@
 package security;
 
+import user.User;
+import java.security.*;
+
 /**
  * A Singleton which deals with password control actions. It implements most of the back-end
  * side of the password policy for SOS, including resolving passwords and checking the input
  * password against the database.
  */
 public class PasswordManager {
+
+	private KeyPairGenerator kgen;
+	private PrivateKey serverPiK;
+	private PublicKey serverPuK;
+	
+	private static int keyLenght = 32;
+	
 	/**
  	* The constructor could be made private
  	* to prevent others from instantiating this
@@ -13,7 +23,17 @@ public class PasswordManager {
  	* impossible to create instances of
  	* PasswordManager subclasses.
 	*/
-	protected PasswordManager() {}
+	protected PasswordManager() {
+		try {
+			this.kgen = KeyPairGenerator.getInstance("RSA");
+			this.kgen.initialize(keyLenght);
+			KeyPair p = this.kgen.generateKeyPair();
+			this.serverPiK = p.getPrivate();
+			this.serverPuK = p.getPublic();
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		}
+	}
 
  	/**
   	 * A handle to the unique PasswordManager
@@ -36,7 +56,9 @@ public class PasswordManager {
 	* @param password as a String to be validated
 	* @return is true if password successfully validates
 	*/
-    static public boolean ValidatePassword(String password) {return false;}
+    static public boolean ValidatePassword(User user, String password) {
+    	return user.equals(password);
+    }
 	
     /**
 	* @param password is a String to be validated
