@@ -19,11 +19,19 @@ import org.json.*;
  */
 public class OrganizationManager {
 
+	private DataStoreFacade ds;
+	
 	/**
  	* A protected or private constructor ensures
  	* that no other class has access to the Singleton.
 	*/
-	protected OrganizationManager() {}
+	protected OrganizationManager() {
+		try {
+			this.ds = new DataStoreFacade();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 
  	/**
   	 * A handle to the unique OrganizationManager
@@ -76,35 +84,55 @@ public class OrganizationManager {
 		 }
 		 
 	 }
-	 
+	 	 
 	 /**
 	  * Creates an organization in the SOS System.
 	  * @param json2 A JSON string that has information about the organization we want to create.
 	  * @throws Exception Throws an exception if their is a failure to create an organization.
 	  */
-	 public void createOrganization(JSONObject json2) throws Exception
+	 public JSONObject createOrganization(JSONObject json)
 	 {
-		 try
-		 {
-			OrganizationBuilder builder = new OrganizationBuilder();
-			
-			JSONObject json = json2;
-			
-			String name = json.getJSONObject("organization").getString("name");
-			String description = json.getJSONObject("organization").getString("description");
-			String requirements = json.getJSONObject("organization").getString("requirements");
-			String privacy = json.getJSONObject("organization").getString("privacy");
-			
-			if(! builder.attemptToCreateAnOrganization(name, privacy, description, requirements) )
-			{
-				throw new Exception("Invalid format for one of the parameters.");
-			}
-			
-		 }
-		 catch(Exception ex)
-		 {
-			 throw new Exception("An error occurred while attempting to create a new organization.\nMore details: "  + ex.getMessage() );
-		 }
+			JSONObject errorPayload = null;
+		 	OrganizationBuilder builder = new OrganizationBuilder();
+			try {
+				builder.setName(json.getJSONObject("organization").getString("name"))
+				.setDescription(json.getJSONObject("organization").getString("description"));
+				
+				try {
+					builder.setPrivacy(json.getJSONObject("organization").getString("privacy"));			
+				} catch (IllegalArgumentException e) {
+					errorPayload = new JSONObject();					
+					errorPayload.put("type", "organizationCreationValueError");
+					errorPayload.put("variable", "privacy");
+				} finally {
+					builder.setPrivacy("PUBLIC");
+				}
+				
+				try {
+					builder.setRequirements(json.getJSONObject("organization").getString("requirements"));
+				} catch (IllegalArgumentException e) {
+					errorPayload = new JSONObject();					
+					errorPayload.put("type", "organizationCreationValueError");
+					errorPayload.put("variable", "privacy");
+				}
+				
+				Organization org = null;
+				if(builder.isComplete())
+					org = builder.build();
+				
+//				ds.createNewOrganization(name, description, privacy, requirements, userID);
+				
+			} catch(Exception ex) {
+				errorPayload = new JSONObject();
+				try {
+					errorPayload.put("type", "generalException");
+					errorPayload.put("payload", "An error occurred while attempting to create a new organization.\nMore details: "  + ex.getMessage());
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+				ex.printStackTrace();
+			} 
+			return errorPayload;
 	 }
 	 
 	 /**
