@@ -11,8 +11,13 @@ public class SOSDispatcher {
 	public enum REQUEST_TYPES {
 		CREATE_USER ("createUser"),
 		CREATE_ORG ("createOrganization"),
-		RETR_ORG ("retrieveOrganization"),
+		RETR_ORGS ("retrieveOrganizations"),
+		RETR_ORG ("retrieveOrganizations"),
 		LOGIN ("login"),
+		LOAD_USER ("loadUser"), 
+		RETR_MEMBER_FOR_ORG ("retrMemberForOrg"), 
+		RETR_EVENT_FOR_ORG ("retrEventForOrg"), 
+		CREATE_EVENT ("createEvent"),
 		;
 		
 		public final String code;
@@ -37,7 +42,7 @@ public class SOSDispatcher {
 	
 	public void dispatch(REQUEST_TYPES request, SocketIOClient client, JSONObject payload) {
 		SOSCommand command = SOSCommand.createCommand(request, client, payload);
-		if(command.exectute())
+		if(command.execute())
 			this.executionHistory.push(command);
 	}
 

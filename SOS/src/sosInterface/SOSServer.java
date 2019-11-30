@@ -83,11 +83,18 @@ public class SOSServer {
 	public void ListenForEvents() 
 	{
 
+		server.addEventListener("organizationLoadAll", String.class, new SOSEventListener() {
+			@Override
+			public void doOnData(SocketIOClient client, JSONObject json, AckRequest ackRequest) {
+				lg.info("Load all organizations requested.");
+				SOSDispatcher.getInstance().dispatch(SOSDispatcher.REQUEST_TYPES.RETR_ORGS, client, json);
+			}
+		});		
+	
 		server.addEventListener("organizationCreate", String.class, new SOSEventListener() {
 			@Override
 			public void doOnData(SocketIOClient client, JSONObject json, AckRequest ackRequest) {
 				lg.info("Organization create requested.");
-//				lg.info("Got message JSON: " + json.toString());	
 				SOSDispatcher.getInstance().dispatch(SOSDispatcher.REQUEST_TYPES.CREATE_ORG, client, json);				
 			}
 		});		
@@ -96,48 +103,56 @@ public class SOSServer {
 			@Override
 			public void doOnData(SocketIOClient client, JSONObject json, AckRequest ackRequest) {
 				lg.info("Login Attempt.");
-				lg.info("Got message JSON: " + json.toString());
 				SOSDispatcher.getInstance().dispatch(SOSDispatcher.REQUEST_TYPES.LOGIN, client, json);
 			}
 		});
 		
-		server.addEventListener("organizationLoadAll", String.class, new SOSEventListener() {
+		server.addEventListener("userRegister", String.class, new SOSEventListener() {
 			@Override
 			public void doOnData(SocketIOClient client, JSONObject json, AckRequest ackRequest) {
-				lg.info("Load all organizations requested.");
-				lg.info("Got message JSON: " + json.toString());
-				SOSDispatcher.getInstance().dispatch(SOSDispatcher.REQUEST_TYPES.RETR_ORG, client, json);
+				lg.info("User registration requested.");
+				SOSDispatcher.getInstance().dispatch(SOSDispatcher.REQUEST_TYPES.CREATE_USER, client, json);
+			}
+		});
+
+		server.addEventListener("userLoadUser", String.class, new SOSEventListener() {
+			@Override
+			public void doOnData(SocketIOClient client, JSONObject json, AckRequest ackRequest) {
+				lg.info("User registration requested.");
+				SOSDispatcher.getInstance().dispatch(SOSDispatcher.REQUEST_TYPES.LOAD_USER, client, json);
 			}
 		});
 		
-//		server.addEventListener("userRegister", String.class, new SOSEventListener() {
-//			@Override
-//			public void doOnData(SocketIOClient client, JSONObject json, AckRequest ackRequest) {
-//				lg.info("User registration requested.");
-//				lg.info("Got message JSON: " + json.toString());
-//				SOSDispatcher_Old dispatcher = new SOSDispatcher_Old(client, json, "create");
-//				dispatcher.Dispatch(EnumerationsAndConstant.REQUEST_TYPE.USER);
-//				
-//				try {
-//					JSONObject data = new JSONObject();
-//					data.put("result", "Added Correctly");
-//					SOSEventListener.doSendEvent(client, data);
-//				} catch (JSONException e) {
-//					e.printStackTrace();
-//				}
-//					
-//			}
-//		});
-//	
-//		server.addEventListener("userLoadUser", JSONObject.class, new DataListener<JSONObject>() {
-//			public void onData(final SocketIOClient client, JSONObject json, final AckRequest ackRequest) {
-//				lg.info("User load requested.");
-//				lg.info("Got message JSON: " + json.toString());
-//				SOSDispatcher_Old dispatcher = new SOSDispatcher_Old(client, json, "load" );
-//				dispatcher.Dispatch(EnumerationsAndConstant.REQUEST_TYPE.USER);
-//			}
-//		});
-//		
+		server.addEventListener("organizationLoadOrganization", String.class, new SOSEventListener() {
+			@Override
+			public void doOnData(SocketIOClient client, JSONObject json, AckRequest ackRequest) {
+				lg.info("User registration requested.");
+				SOSDispatcher.getInstance().dispatch(SOSDispatcher.REQUEST_TYPES.RETR_ORG, client, json);
+			}
+		});		
+
+		server.addEventListener("organizationLoadEventsFromOrganization", String.class, new SOSEventListener() {
+			@Override
+			public void doOnData(SocketIOClient client, JSONObject json, AckRequest ackRequest) {
+			}
+		});				
+		
+		server.addEventListener("organizationLoadUsersFromOrganization", String.class, new SOSEventListener() {
+			@Override
+			public void doOnData(SocketIOClient client, JSONObject json, AckRequest ackRequest) {
+				lg.info("Members from Organization Requested.");
+				SOSDispatcher.getInstance().dispatch(SOSDispatcher.REQUEST_TYPES.RETR_MEMBER_FOR_ORG, client, json);
+			}
+		});		
+		
+		server.addEventListener("eventCreate", String.class, new SOSEventListener() {
+			@Override
+			public void doOnData(SocketIOClient client, JSONObject json, AckRequest ackRequest) {
+				lg.info("Event Creation Requested.");
+				SOSDispatcher.getInstance().dispatch(SOSDispatcher.REQUEST_TYPES.CREATE_EVENT, client, json);
+			}
+		});	
+				
 //		server.addEventListener("userUpdateProfile", JSONObject.class, new DataListener<JSONObject>() {
 //			public void  onData(final SocketIOClient client, JSONObject json, final AckRequest ackRequest) {
 //				lg.info("User update requested.");
@@ -147,14 +162,7 @@ public class SOSServer {
 //			}
 //		});
 //		
-//		server.addEventListener("eventCreate", JSONObject.class, new DataListener<JSONObject>() {
-//			public void onData(final SocketIOClient client, JSONObject json, final AckRequest ackRequest) {				
-//				lg.info("Event create requested.");
-//				lg.info("Got message JSON: " + json.toString());
-//				SOSDispatcher_Old dispatcher = new SOSDispatcher_Old(client, json, "create");
-//				dispatcher.Dispatch(EnumerationsAndConstant.REQUEST_TYPE.EVENT);
-//			}
-//		});
+
 //		
 //		server.addEventListener("eventLoadEvent", JSONObject.class, new DataListener<JSONObject>() {
 //			public void onData(final SocketIOClient client, JSONObject json, final AckRequest ackRequest) {
@@ -164,7 +172,7 @@ public class SOSServer {
 //				dispatcher.Dispatch(EnumerationsAndConstant.REQUEST_TYPE.EVENT);
 //			}
 //		});
-//		
+	
 //		server.addEventListener("eventLoadAllEvent", JSONObject.class, new DataListener<JSONObject>() {
 //			public void onData(final SocketIOClient client, JSONObject json, final AckRequest ackRequest) {
 //				lg.info("Load all events requested.");
@@ -201,15 +209,6 @@ public class SOSServer {
 //			}
 //		});
 //		
-//		
-//		server.addEventListener("organizationLoadOrganization", JSONObject.class, new DataListener<JSONObject>() { 
-//			public void onData(final SocketIOClient client, JSONObject json, final AckRequest ackRequest) {
-//				lg.info("Load selected organization requested.");
-//				lg.info("Got message JSON: " + json.toString());	
-//				SOSDispatcher_Old dispatcher = new SOSDispatcher_Old(client, json, "loadOne");
-//				dispatcher.Dispatch(EnumerationsAndConstant.REQUEST_TYPE.ORGANIZATION);
-//			}
-//		});
 //		
 //		
 //		server.addEventListener("organizationLoadByUser", JSONObject.class, new DataListener<JSONObject>() {

@@ -1,6 +1,10 @@
 package event;
 
 import storage.DataStoreFacade;
+import user.User;
+
+import java.sql.ResultSet;
+
 import org.json.*;
 
 /**
@@ -16,11 +20,19 @@ import org.json.*;
  */
 public class EventManager {
 
+	DataStoreFacade ds;
+	
 	/**
  	* A protected or private constructor ensures
  	* that no other class has access to the Singleton.
 	*/
-	protected EventManager() {}
+	protected EventManager() {
+		try {
+			this.ds = new DataStoreFacade();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 
  	/**
   	 * A handle to the unique EventManager
@@ -87,51 +99,58 @@ public class EventManager {
 	 * 		the JSON object describing the new Event. 
 	 * throws @Exception Throws exception when the fields given to create the event are invalid.
 	 */ 
-	 public void createEvent(JSONObject json2) throws Exception {
+	 public JSONObject createEvent(JSONObject json) {
 		 
-		 DataStoreFacade ds = new DataStoreFacade();
-		 
-		 try
-		 {
-			 JSONObject json = json2;
-		 
-			 EventBuilder builder = new EventBuilder();
-			 
-			 String name = json.getJSONObject("event").getString("eventName");
-			 String description = json.getJSONObject("event").getString("eventDescription");
-			 String date = json.getJSONObject("event").getString("eventDate");
-			 String visibility = json.getJSONObject("event").getString("eventVisibility");
-			 String time = json.getJSONObject("event").getString("eventTime");
-			 String eventType = json.getJSONObject("event").getString("eventType");
-			 String hostedBy = json.getJSONObject("event").getString("hostedBy");
-			 String latCoord = json.getJSONObject("event").getString("latitude");
-			 String longCoord = json.getJSONObject("event").getString("longitude");
-			 
-			 if ( !builder.attemptCreatingEvent(name, 
-					 description, 
-					 date, 
-					 Boolean.getBoolean(visibility), 
-					 time, 
-					 Integer.getInteger(eventType), 
-					 Integer.getInteger(hostedBy),
-					 Double.parseDouble(latCoord), 
-					 Double.parseDouble(longCoord)) )
-			 {
-				 throw new Exception("Invalid event fields.");
-			 }
-			 
-			 ds.createNewEvent(name, Double.parseDouble(longCoord), Double.parseDouble(latCoord), 
-					 			description, Boolean.getBoolean(visibility), time, date, 
-					 			Integer.getInteger(eventType), 
-					 			Integer.getInteger(hostedBy));
-		 }
-		 catch(Exception ex)
-		 {
-			 throw new Exception("Failed to create the event.\n More details: " + ex.getMessage());
-		 }
-		 
-		 ds.terminateConnection();
-		 
+			JSONObject ret = new JSONObject();
+			try {
+				 EventBuilder builder = new EventBuilder();
+				 
+				 String name = json.getJSONObject("event").getString("eventName");
+				 String description = json.getJSONObject("event").getString("eventDescription");
+				 String date = json.getJSONObject("event").getString("eventDate");
+				 String visibility = json.getJSONObject("event").getString("eventVisibility");
+				 String time = json.getJSONObject("event").getString("eventTime");
+				 String eventType = json.getJSONObject("event").getString("eventType");
+				 String hostedBy = json.getJSONObject("event").getString("hostedBy");
+				 String latCoord = json.getJSONObject("event").getString("latitude");
+				 String longCoord = json.getJSONObject("event").getString("longitude");
+				 
+				 if ( !builder.attemptCreatingEvent(name, 
+						 description, 
+						 date, 
+						 Boolean.getBoolean(visibility), 
+						 time, 
+						 Integer.getInteger(eventType), 
+						 Integer.getInteger(hostedBy),
+						 Double.parseDouble(latCoord), 
+						 Double.parseDouble(longCoord)) )
+				 {
+					 throw new Exception("Invalid event fields.");
+				 }
+				 
+				 this.ds.createNewEvent(name, Double.parseDouble(longCoord), Double.parseDouble(latCoord), 
+						 			description, Boolean.getBoolean(visibility), time, date, 
+						 			Integer.getInteger(eventType), 
+						 			Integer.getInteger(hostedBy));
+			} catch (JSONException e) {
+				try {
+					ret.put("error", "true");
+					ret.put("type", "usernameValueError");
+				} catch (JSONException e1) {
+					e1.printStackTrace();
+				}
+				e.printStackTrace();
+			} catch (Exception e) {
+				try {
+					ret.put("error", "true");
+					ret.put("type", "generalException");
+					ret.put("payload", "Failed to create the event.\n More details: " + e.getMessage());
+				} catch (JSONException e1) {
+					e1.printStackTrace();
+				}
+				e.printStackTrace();
+			}
+			return ret;		 		 
 	 }
 	 
 	 /**

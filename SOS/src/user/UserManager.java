@@ -8,6 +8,7 @@ import utils.JSONTranslator;
 import org.json.*;
 
 import event.EventBuilder;
+import organization.Organization;
 import security.PasswordManager;
 
 /**
@@ -62,24 +63,45 @@ public class UserManager {
 	/**
 	 * Creates a User from a database-format entry. Done by
 	 * calling the UserLoader class.
-	 * @param userID The ID of the user that we want 
+	 * @param payload The ID of the user that we want 
 	 * @return	a User object with the given attributes.
 	 */
-	public JSONObject LoadUser(int userID) throws Exception
+	public JSONObject LoadUser(JSONObject payload)
 	{
-		try
-		{
-			DataStoreFacade ds = new DataStoreFacade();
-			
-			UserLoader loader = new UserLoader();
-			
-			return loader.LoadUser(ds.retrieveUserDetails(userID)).getJSON();
-			
+		
+		JSONObject ret = new JSONObject();
+		try {
+			String username = payload.getJSONObject("user").getString("username");
+			ResultSet user = ds.retrieveUserByUsername(username);
+			if(user == null) {
+				ret.put("error", "true");
+				ret.put("type", "usernotfoundError");
+			} else {
+				if(user.next()) {
+					User loadedUser = ul.LoadUser(user);
+					ret.put("user", loadedUser.getJSON());					
+				}
+			}
+		} catch (JSONException e) {
+			try {
+				ret.put("error", "true");
+				ret.put("type", "usernameValueError");
+			} catch (JSONException e1) {
+				e1.printStackTrace();
+			}
+			e.printStackTrace();
+		} catch (Exception e) {
+			try {
+				ret.put("error", "true");
+				ret.put("type", "generalException");
+				ret.put("payload", "An error occurred while attempting to find all events for the user.\nMore Details: " + e.getMessage());
+			} catch (JSONException e1) {
+				e1.printStackTrace();
+			}
+			e.printStackTrace();
 		}
-		catch(Exception ex)
-		{
-			throw new Exception("An error occurred while attempting to retrieve user details.\nMore details: " + ex.getMessage());
-		}
+		return ret;
+	
 	}
 	
 	public JSONObject login(JSONObject payload) {
@@ -92,13 +114,15 @@ public class UserManager {
 				ret.put("error", "true");
 				ret.put("type", "usernotfoundError");
 			} else {
-				User loadedUser = ul.LoadUser(user);
-				if (!PasswordManager.ValidateLogInCredentials(loadedUser, password)) {
-					ret.put("error", "true");
-					ret.put("type", "invalidcredentials");
-				} else {
-					ret.put("type", "doLogin");
-					ret.put("user", loadedUser.getJSON());
+				if(user.next()) {					
+					User loadedUser = ul.LoadUser(user);
+					if (!PasswordManager.ValidateLogInCredentials(loadedUser, password)) {
+						ret.put("error", "true");
+						ret.put("type", "invalidcredentials");
+					} else {
+						ret.put("type", "doLogin");
+						ret.put("user", loadedUser.getJSON());
+					}
 				}
 			}
 		} catch (JSONException e) {
@@ -166,6 +190,7 @@ public class UserManager {
 			try {
 				builder.setPassword(json.getJSONObject("user").getString("userPassword"));
 			} catch (IllegalArgumentException e) {
+				e.printStackTrace();
 				ret.put("error", "true");
 				ret.put("type", "invalidPassword");
 				return ret;
@@ -181,7 +206,7 @@ public class UserManager {
 			
 			User user = builder
 			.setName(json.getJSONObject("user").getString("userName"))
-			.setPrivacy(json.getJSONObject("user").getString("userPrivacy"))
+			.setPrivacy("PUBLIC")
 			.build();
 			
 			this.ds.registerNewUser(user);
@@ -196,5 +221,59 @@ public class UserManager {
 			 
 		return ret;
 	}
+	
+	
+	public JSONObject getMembersOfOrganization(JSONObject payload) {
+		JSONObject ret = new JSONObject();
+		try {
+			
+			ResultSet set = null;
+			if(payload.getJSONObject("organization").has("organization_id")) {
+			
+				set = this.ds.retrieveMembersOfOrganization(payload.getJSONObject("organization").getInt("organization_id"));
+				int skip = payload.getJSONObject("organization").getInt("startIndex");
+				int count = 20;
+				
+				JSONArray members = new JSONArray();
+				while(set.next()) {
+					User loadedUser = ul.LoadUser(set);
+					if(loadedUser != null) {
+						members.put(loadedUser.getJSON());
+						System.out.println(loadedUser.getJSON());
+					} else break;
+					
+				}
+				
+				set.close();
+				System.out.println(members.toString());
+				ret.put("data", members.toString());
+				
+			} else {
+				ret.put("error", "true");
+				ret.put("type", "noSearchParameter");
+				return ret;
+			}
+			
+		} catch (JSONException e) {
+			try {
+				ret.put("error", "true");
+				ret.put("type", "orgidValueError");
+			} catch (JSONException e1) {
+				e1.printStackTrace();
+			}
+			e.printStackTrace();
+		} catch (Exception e) {
+			try {
+				ret.put("error", "true");
+				ret.put("type", "generalException");
+				ret.put("payload", "An error occurred while attempting to load the details for the organization.\nMore information: " + e.getMessage());
+			} catch (JSONException e1) {
+				e1.printStackTrace();
+			}
+			e.printStackTrace();
+		}
+		return ret;
+	}
+	
 	
 }

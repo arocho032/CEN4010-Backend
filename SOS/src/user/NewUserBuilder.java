@@ -41,7 +41,7 @@ public class NewUserBuilder {
 	}
 	
 	public NewUserBuilder setPassword(String password) {
-		if(this.user.userName == null) {
+		if(this.user.userName != null) {
 			if(PasswordManager.ValidatePassword(password)) {
 				String passwordHash = PasswordManager.HashPassword(this.user.userName, password);
 				this.user.password = passwordHash;
@@ -75,7 +75,7 @@ public class NewUserBuilder {
 		return this.user;
 	}
 	
-	public boolean isNotComplete() {
+	public boolean isNotComplete() {	
 		return this.user.name == null
 				|| this.user.userName == null
 				|| this.user.email == null
@@ -87,7 +87,7 @@ public class NewUserBuilder {
 		try {
 			DataStoreFacade ds = new DataStoreFacade();
 			ResultSet user = ds.retrieveUserByUsername(username);
-			return user == null;
+			return user.next() == false;
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

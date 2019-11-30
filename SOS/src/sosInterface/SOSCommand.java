@@ -8,6 +8,7 @@ import org.json.JSONObject;
 
 import com.corundumstudio.socketio.SocketIOClient;
 
+import event.EventManager;
 import organization.OrganizationManager;
 import sosInterface.SOSDispatcher.REQUEST_TYPES;
 import sosInterface.socket.SOSEventListener;
@@ -16,9 +17,15 @@ import user.UserManager;
 public abstract class SOSCommand {
 
 	private static REQUEST_TYPES[] implemented = { 
+			REQUEST_TYPES.CREATE_USER,
 			REQUEST_TYPES.CREATE_ORG, 
+			REQUEST_TYPES.RETR_ORGS,
 			REQUEST_TYPES.RETR_ORG,
-			REQUEST_TYPES.LOGIN
+			REQUEST_TYPES.LOGIN,
+			REQUEST_TYPES.LOAD_USER,
+			REQUEST_TYPES.RETR_MEMBER_FOR_ORG,
+			REQUEST_TYPES.RETR_EVENT_FOR_ORG,
+			REQUEST_TYPES.CREATE_EVENT,
 	};
 	
 	protected SocketIOClient client;
@@ -28,7 +35,7 @@ public abstract class SOSCommand {
 		this.client = client;
 	};
 	
-	abstract public boolean exectute() throws RuntimeException;
+	abstract public boolean execute() throws RuntimeException;
 	
 	public String errorStatus() {
 		return this.errorStatus;
@@ -49,7 +56,7 @@ public abstract class SOSCommand {
 		switch(request) {
 			case CREATE_ORG: {
 				ret = new SOSCommand(client) {
-						public boolean exectute() {
+						public boolean execute() {
 							JSONObject retPayload = OrganizationManager.instance().createOrganization(payload);
 							if(!(retPayload == null)) {
 								this.errorStatus = "argumentError";
@@ -71,7 +78,7 @@ public abstract class SOSCommand {
 			case LOGIN: {
 				ret = new SOSCommand(client) {
 					@Override
-					public boolean exectute() throws RuntimeException {
+					public boolean execute() throws RuntimeException {
 						JSONObject retPayload = UserManager.instance().login(payload);
 						if(retPayload.has("error")) {
 							this.errorStatus = "argumentError";
@@ -84,10 +91,10 @@ public abstract class SOSCommand {
 				};
 				break;
 			}
-			case RETR_ORG: {
+			case RETR_ORGS: {
 				ret = new SOSCommand(client) {
 					@Override
-					public boolean exectute() throws RuntimeException {
+					public boolean execute() throws RuntimeException {
 						JSONObject retPayload = OrganizationManager.instance().getAllOrganizations();
 						if(retPayload.has("error")) {
 							this.errorStatus = "argumentError";
@@ -109,12 +116,9 @@ public abstract class SOSCommand {
 							for(int i = startIndex; i < startIndex + count && i < values.length(); i++)
 								split.put(values.get(i));	
 
-							System.out.println("Trace here.");
 							retPayload = new JSONObject();
 							retPayload.put("org", split);
 							retPayload.put("type", "updateOrgs");
-							System.out.println(retPayload);
-
 
 						} catch (JSONException e) {
 							e.printStackTrace();
@@ -126,6 +130,115 @@ public abstract class SOSCommand {
 				};
 				break;
 			}
+			case LOAD_USER: {
+				ret = new SOSCommand(client) {
+					@Override
+					public boolean execute() throws RuntimeException {
+						JSONObject retPayload = UserManager.instance().LoadUser(payload);
+						if(retPayload.has("error")) {
+							this.errorStatus = "argumentError";
+							this.failWith(retPayload);
+							return false;
+						}
+						
+						try {
+							retPayload.put("type", "successfulUserloaded");
+						} catch (JSONException e) {
+							e.printStackTrace();
+						}
+						this.succeedWith(retPayload);						
+						return true;
+					}
+				};
+				break;
+			}
+			case CREATE_USER: {
+				ret = new SOSCommand(client) {
+
+					@Override
+					public boolean execute() throws RuntimeException {
+						JSONObject retPayload = UserManager.instance().CreateNewProfile(payload);
+						if(!(retPayload == null)) {
+							this.errorStatus = "argumentError";
+							this.failWith(retPayload);
+							return false;
+						}
+						retPayload = new JSONObject();
+						try {
+							retPayload.put("type", "successCreatingOrganization");
+							this.succeedWith(retPayload);							
+						} catch (JSONException e) {
+							e.printStackTrace();
+						}
+						return true;
+					}
+					
+				};
+				break;
+			}
+			case RETR_ORG: {
+				ret = new SOSCommand(client) {
+					public boolean execute() throws RuntimeException {
+						JSONObject retPayload = OrganizationManager.instance().loadOrganizationDetails(payload);
+						if(retPayload.has("error")) {
+							this.errorStatus = "argumentError";
+							this.failWith(retPayload);
+							return false;
+						}
+						
+						try {
+							retPayload.put("type", "succesfulOrgloaded");
+						} catch (JSONException e) {
+							e.printStackTrace();
+						}
+						this.succeedWith(retPayload);						
+						return true;
+					}
+				};
+				break;
+			}
+			case RETR_MEMBER_FOR_ORG: {
+				ret = new SOSCommand(client) {
+					public boolean execute() throws RuntimeException {
+						JSONObject retPayload = UserManager.instance().getMembersOfOrganization(payload);
+						if(retPayload.has("error")) {
+							this.errorStatus = "argumentError";
+							this.failWith(retPayload);
+							return false;
+						}
+						
+						try {
+							retPayload.put("type", "successMembersLoaded");
+						} catch (JSONException e) {
+							e.printStackTrace();
+						}
+						this.succeedWith(retPayload);						
+						return true;
+					}
+				};
+				break;
+			}
+			case CREATE_EVENT:
+				ret = new SOSCommand(client) {
+					public boolean execute() throws RuntimeException {
+						JSONObject retPayload = EventManager.instance().createEvent(payload);
+						if(retPayload.has("error")) {
+							this.errorStatus = "argumentError";
+							this.failWith(retPayload);
+							return false;
+						}
+						
+						try {
+							retPayload.put("type", "successMembersLoaded");
+						} catch (JSONException e) {
+							e.printStackTrace();
+						}
+						this.succeedWith(retPayload);						
+						return true;
+
+					}
+				};
+				break;
 			default:
 				break;
 		}

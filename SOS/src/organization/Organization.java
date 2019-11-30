@@ -17,7 +17,7 @@ public class Organization {
 	protected String description;
 	protected String privacy;
 	protected String requirements;
-	
+		
 	private JSONObject jsonTranslation;
 	
 	
@@ -43,6 +43,41 @@ public class Organization {
 	protected JSONObject getJSONObject()
 	{
 		return this.jsonTranslation;
+	}
+
+	/**
+	 * @return the name
+	 */
+	public String getName() {
+		return name;
+	}
+
+	/**
+	 * @return the description
+	 */
+	public String getDescription() {
+		return description;
+	}
+
+	/**
+	 * @return the privacy
+	 */
+	public String getPrivacy() {
+		return privacy;
+	}
+
+	/**
+	 * @return the requirements
+	 */
+	public String getRequirements() {
+		return requirements;
+	}
+
+	/**
+	 * @return the jsonTranslation
+	 */
+	public JSONObject getJsonTranslation() {
+		return jsonTranslation;
 	}
 
 }

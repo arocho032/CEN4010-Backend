@@ -47,7 +47,6 @@ public class OrganizationBuilder {
 		return this.organization;
 	}
 	
-	
 	public boolean isNotComplete() {
 		return this.organization.name == null
 				|| this.organization.description == null

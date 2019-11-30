@@ -32,12 +32,13 @@ public class User {
 		try
 		{
 			jsonTranslation = JSONTranslator.resultSetToJSONObject(set);
+			System.out.println(jsonTranslation.toString());
 			this.name = jsonTranslation.getString("name");
 			this.user_id = jsonTranslation.getInt("user_id");
 			this.userName = jsonTranslation.getString("user_name");
 			this.password = jsonTranslation.getString("password");
 			this.privacy = jsonTranslation.getString("privacy");
-//			this.email = jsonTranslation.getString("email");
+			this.email = jsonTranslation.getString("email");
 			
 		}
 		catch(Exception ex)

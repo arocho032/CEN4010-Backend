@@ -32,6 +32,7 @@ public class UserLoader {
 		}
 		catch(Exception ex)
 		{
+			ex.printStackTrace();
 			throw new Exception("There was an error loading the user.\nMore details: " + ex.getMessage());
 		}
 		
