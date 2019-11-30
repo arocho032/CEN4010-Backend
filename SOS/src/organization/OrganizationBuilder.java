@@ -42,13 +42,13 @@ public class OrganizationBuilder {
 	}
 	
 	public Organization build() throws IllegalArgumentException {
-		if(this.isComplete())
+		if(this.isNotComplete())
 			throw new IllegalArgumentException("Invalid build. Missing some components.");
 		return this.organization;
 	}
 	
 	
-	public boolean isComplete() {
+	public boolean isNotComplete() {
 		return this.organization.name == null
 				|| this.organization.description == null
 				|| this.organization.privacy == null

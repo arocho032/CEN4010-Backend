@@ -28,7 +28,6 @@ public class UserLoader {
 		try
 		{
 			user = new User(results);
-			
 			return this.user;
 		}
 		catch(Exception ex)

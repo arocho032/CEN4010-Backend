@@ -43,6 +43,7 @@ public class SOSServer {
 			config = new Configuration();
 			config.setHostname(hostName);
 			config.setPort(portNumber);
+			config.setOrigin("http://localhost:3000");
 			server =  new SocketIOServer(config);
 			lg = LoggerFactory.getLogger(SOSServer.class);
 		}
@@ -90,6 +91,24 @@ public class SOSServer {
 				SOSDispatcher.getInstance().dispatch(SOSDispatcher.REQUEST_TYPES.CREATE_ORG, client, json);				
 			}
 		});		
+		
+		server.addEventListener("userLogin", String.class, new SOSEventListener() {
+			@Override
+			public void doOnData(SocketIOClient client, JSONObject json, AckRequest ackRequest) {
+				lg.info("Login Attempt.");
+				lg.info("Got message JSON: " + json.toString());
+				SOSDispatcher.getInstance().dispatch(SOSDispatcher.REQUEST_TYPES.LOGIN, client, json);
+			}
+		});
+		
+		server.addEventListener("organizationLoadAll", String.class, new SOSEventListener() {
+			@Override
+			public void doOnData(SocketIOClient client, JSONObject json, AckRequest ackRequest) {
+				lg.info("Load all organizations requested.");
+				lg.info("Got message JSON: " + json.toString());
+				SOSDispatcher.getInstance().dispatch(SOSDispatcher.REQUEST_TYPES.RETR_ORG, client, json);
+			}
+		});
 		
 //		server.addEventListener("userRegister", String.class, new SOSEventListener() {
 //			@Override
@@ -192,14 +211,6 @@ public class SOSServer {
 //			}
 //		});
 //		
-//		server.addEventListener("organizationLoadAll", JSONObject.class, new DataListener<JSONObject>() {
-//			public void onData(final SocketIOClient client, JSONObject json, final AckRequest ackRequest) {
-//				lg.info("Load all organizations requested.");
-//				lg.info("Got message JSON: " + json.toString());	
-//				SOSDispatcher_Old dispatcher = new SOSDispatcher_Old(client, json, "loadAll");
-//				dispatcher.Dispatch(EnumerationsAndConstant.REQUEST_TYPE.ORGANIZATION);
-//			}
-//		});
 //		
 //		server.addEventListener("organizationLoadByUser", JSONObject.class, new DataListener<JSONObject>() {
 //			public void onData(final SocketIOClient client, JSONObject json, final AckRequest ackRequest) {

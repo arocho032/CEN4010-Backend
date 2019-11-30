@@ -10,7 +10,9 @@ public class SOSDispatcher {
 
 	public enum REQUEST_TYPES {
 		CREATE_USER ("createUser"),
-		CREATE_ORG ("createOrganization")
+		CREATE_ORG ("createOrganization"),
+		RETR_ORG ("retrieveOrganization"),
+		LOGIN ("login"),
 		;
 		
 		public final String code;

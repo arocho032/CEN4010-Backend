@@ -116,8 +116,17 @@ public class OrganizationManager {
 					errorPayload.put("variable", "privacy");
 				}
 				
+//				try {
+//					String username = json.getJSONObject("organization").getString("user");
+//					
+//					builder.setOwner();	
+//				} catch (IllegalArgumentException e) {
+//					
+//				}
+				
+				
 				Organization org = null;
-				if(builder.isComplete())
+				if(!builder.isNotComplete())
 					org = builder.build();
 				
 //				ds.createNewOrganization(name, description, privacy, requirements, userID);
@@ -162,38 +171,48 @@ public class OrganizationManager {
 	  * @return A JSONArray with all the public organizations stored in the SOS.
 	  * @throws Exception Throws an exception if their was an error retrieving the SOS public organizations.
 	  */
-	 public JSONArray getAllOrganizations() throws Exception
+	 public JSONObject getAllOrganizations() 
 	 { 
-		 try
-		 {
-			 DataStoreFacade ds = new DataStoreFacade();
-			 
-			 return JSONTranslator.resultSetToJSONArray(ds.retrievePublicOrganizations());
-		 }
-		 catch(Exception ex)
-		 {
-			 throw new Exception("An error occurred while attempting to retrieve all of the organizations.\nMore Details: " + ex.getMessage());
-		 }
+		JSONObject retPayload = new JSONObject();
+		try {
+			JSONArray array = JSONTranslator.resultSetToJSONArray(this.ds.retrievePublicOrganizations());
+			 retPayload.put("values", array);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			try {
+				retPayload.put("error", "true");
+				retPayload.put("type", "generalException");
+				retPayload.put("payload", "An error occurred while attempting to find all events for the user.\nMore Details: " + ex.getMessage());
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+		}
+		return retPayload;
 	 }
 	 
 	 /**
 	  * Gets all the organizations which a user currently belongs to.
 	  * @param userID The user that we want to retrieve the organizations for.
-	  * @return A JSONArray with all the organizations the user is a part of.
+	  * @return A JSONObject with all the organizations the user is a part of.
 	  * @throws Exception Throws an exception if there was an error retrieving the organizations for the user.
 	  */
-	 public JSONArray getAllOrganizations(int userID) throws Exception
+	 public JSONObject getAllOrganizations(int userID)
 	 {
-		 try
-		 {
-			 DataStoreFacade ds = new DataStoreFacade();
-			 
-			 return JSONTranslator.resultSetToJSONArray(ds.retrieveOrganizationsForUser(userID));
-		 }
-		 catch(Exception ex)
-		 {
-			 throw new Exception("An error occurred while attempting to find all events for the user.\nMore Details: " + ex.getMessage());
-		 }
+		JSONObject retPayload = new JSONObject();
+		try {
+			JSONArray array = JSONTranslator.resultSetToJSONArray(this.ds.retrieveOrganizationsForUser(userID));
+			 retPayload.put("values", array);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			try {
+				retPayload.put("error", "true");
+				retPayload.put("type", "generalException");
+				retPayload.put("payload", "An error occurred while attempting to find all events for the user.\nMore Details: " + ex.getMessage());
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+		}
+		return retPayload;
 	 }
 	 
 	 /**

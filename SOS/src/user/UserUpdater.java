@@ -1,6 +1,11 @@
 package user;
 
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * A class which deals with User modifications. User modifications 
@@ -21,6 +26,28 @@ public class UserUpdater {
 	 * 		a Map where the key is the variable
 	 * 		name and the value is the update.
 	 */
-	public void ChangeUser(User user, Map<String, String> update) {}
+	public void ChangeUser(User user, Map<String, String> update) {
+		if(update.containsKey("email"))
+			user.email = update.get("email");
+		if(update.containsKey("privacy"))
+			user.privacy = update.get("privacy");		
+	}
+
+	public Map<String, String> makeUpdatesMap(JSONObject json) {
+	
+		Map<String, String> update = new HashMap<>();
+	    try {
+			Iterator<String> keys = json.keys();
+			while(keys.hasNext()) {
+			    String key = keys.next();
+				if (json.get(key) instanceof String) {
+					update.put(key, (String) json.get(key));
+				}
+			}
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}		
+		return update;
+	}
 
 }

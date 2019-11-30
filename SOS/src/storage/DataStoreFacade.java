@@ -2,7 +2,8 @@ package storage;
 
 import java.sql.*;
 import java.text.*;
-import org.json.*;
+
+import user.User;
 
 ///**
 // * A Façade object that acts as the interface for the SOS 
@@ -20,12 +21,6 @@ import org.json.*;
 public class DataStoreFacade {
 	
 	private Connection connect = null;
-	private Statement statement = null;
-	private PreparedStatement preparedStatement = null;
-	private ResultSet resultSet = null;
-	
-	final private String host = "localhost:3306";
-	final private String user = "root";
 	final private String password = "SOSDBCEN4010";
 	
 	
@@ -39,6 +34,7 @@ public class DataStoreFacade {
 		{
 			Class.forName("com.mysql.cj.jdbc.Driver");
 			
+			// Change this to a const.
 			connect = DriverManager
 					.getConnection("jdbc:mysql://localhost:3306/?user=root&password=" + password);
 		}
@@ -191,11 +187,8 @@ public class DataStoreFacade {
 		try
 		{
 			final String query = "CALL `sos_storage`.`get_all_organizations`();";
-			
-			CallableStatement procedure = connect.prepareCall(query);
-			
+			CallableStatement procedure = connect.prepareCall(query);		
 			procedure.execute();
-			
 			return procedure.getResultSet();
 					
 		}
@@ -241,27 +234,22 @@ public class DataStoreFacade {
 	 * @param userName The user's name.
 	 * @throws Exception An exception is thrown when the new user information fails to be stored in the SOS database.
 	 */
-	public void registerNewUser(String encryptedPassword, String email, String name, String userName ) throws Exception
+	public void registerNewUser(User user)
 	{
 		
-		try
-		{
-			final String query = "CALL sos_storage.user_register(?,?,?,?)";
-			
+		final String query = "CALL sos_storage.user_register(?,?,?,?,?)";
+		try {
 			CallableStatement procedure = connect.prepareCall(query);
-			
-			procedure.setString(1, encryptedPassword);
-			procedure.setString(2, email);
-			procedure.setString(3, name);
-			procedure.setString(4, userName);
-			
+			procedure.setString(1, user.getPassword());
+			procedure.setString(2, user.getEmail());
+			procedure.setString(3, user.getName());
+			procedure.setString(4, user.getUserName());
+			procedure.setString(5, user.getPrivacy());
 			procedure.execute();
+		} catch (SQLException e) {
+			e.printStackTrace();
 		}
-		catch(Exception ex)
-		{
-			throw new Exception("There was an error registering the new user.\nMore Details: " + ex.getMessage());
-		}
-		
+	
 	}
 	
 	
@@ -372,6 +360,21 @@ public class DataStoreFacade {
 		{
 			throw new Exception("There was an error while retrieving the events.\nMore details:" + ex.getMessage());
 		}
+	}
+	
+	public ResultSet retrieveUserByUsername(String username) throws Exception {
+		
+		try
+		{
+			final String query = "CALL `sos_storage`.`get_user_by_username`(?);";
+			CallableStatement procedure = connect.prepareCall(query);
+			procedure.setString(1,  username);
+			return procedure.getResultSet();
+			
+		} catch (Exception ex) {
+			throw new Exception("There was an error while retrieving the events.\nMore details:" + ex.getMessage());
+		}
+		
 	}
 	
 	/**
@@ -492,17 +495,23 @@ public class DataStoreFacade {
 	 * @param privacy The modified privacy assigned to the user in the database.
 	 * @throws Exception If the email is already present in the database under a different user then an exception is thrown.
 	 */
-	public void updateUserInformation(int userID, String email, String privacy) throws Exception
+	public void updateUserInformation(User user) throws Exception
 	{
 		try
 		{
+			int userID = user.getUser_id();
+			if(userID == -1) {
+				ResultSet backenduser = this.retrieveUserByUsername(user.getUserName());
+				userID = (int) backenduser.getObject("user_id");
+			}
+			
 			final String query = "Call sos_storage.update_user_information(?,?,?)";
 			
 			CallableStatement procedure = connect.prepareCall(query);
 			
 			procedure.setInt(1, userID);
-			procedure.setString(2, email);
-			procedure.setString(3, privacy);
+			procedure.setString(2, user.getEmail());
+			procedure.setString(3, user.getPrivacy());
 			
 			procedure.execute();
 			
@@ -552,12 +561,6 @@ public class DataStoreFacade {
 	
 	
 	
-	
-	
-	
-	
-	
-	
-	
+
 	
 }
