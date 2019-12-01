@@ -558,7 +558,7 @@ public class DataStoreFacade {
 				userID = (int) backenduser.getObject("user_id");
 			}
 			
-			final String query = "Call sos_storage.update_user_information(?,?,?)";
+			final String query = "Call `sos_storage`.`update_user_information`(?,?,?)";
 			
 			CallableStatement procedure = connect.prepareCall(query);
 			
@@ -571,6 +571,7 @@ public class DataStoreFacade {
 		}
 		catch(Exception ex)
 		{
+			ex.printStackTrace();
 			throw new Exception("There was an error updating the user's information in the database.\nMore Details: " + ex.getMessage());
 		}
 		

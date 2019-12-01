@@ -153,19 +153,46 @@ public class UserManager {
 	 * @param json2 The JSON string with the user information and their changes.
 	 * @throws Exception Throws an exception if an error occurs while attempting to change user information.
 	 */
-	public void ChangeUserDetails(String username, JSONObject json) throws Exception
+	public JSONObject ChangeUserDetails(JSONObject json)
 	{
-		try
-		{			 
-			User user = ul.LoadUser(this.ds.retrieveUserByUsername(username));
-			up.ChangeUser(user, up.makeUpdatesMap(json)); 
-			ds.updateUserInformation(user);
 		
+		JSONObject ret = new JSONObject();
+		try {						
+			ResultSet user = this.ds.retrieveUserDetails(json.getInt("user_id"));
+			if(user == null) {
+				ret.put("error", "true");
+				ret.put("type", "usernotfoundError");
+			} else {
+				if(user.next()) {
+					User loadedUser = ul.LoadUser(user);
+					if(!PasswordManager.instance().ValidateLogInCredentials(loadedUser, json.getString("password")))
+						return null;
+					
+					up.ChangeUser(loadedUser, up.makeUpdatesMap(json.getJSONObject("update"))); 
+					ds.updateUserInformation(loadedUser);
+					return ret;
+				}
+			}
+		} catch (JSONException e) {
+			try {
+				ret.put("error", "true");
+				ret.put("type", "usernameValueError");
+			} catch (JSONException e1) {
+				e1.printStackTrace();
+			}
+			e.printStackTrace();
+		} catch (Exception e) {
+			try {
+				ret.put("error", "true");
+				ret.put("type", "generalException");
+				ret.put("payload", "There was an issue in updating the user's information.\nMore details: " + e.getMessage());
+			} catch (JSONException e1) {
+				e1.printStackTrace();
+			}
+			e.printStackTrace();
 		}
-		catch(Exception ex)
-		{
-			throw new Exception("There was an issue in updating the user's information.\nMore details: " + ex.getMessage());
-		}
+		return ret;		
+		
 	};
 	
 	/**

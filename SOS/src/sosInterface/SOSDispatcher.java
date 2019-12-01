@@ -27,6 +27,7 @@ public class SOSDispatcher {
 		RETR_EVENTS_BY_LOCATION, 
 		RETR_EVENT, 
 		ATTEND_EVENT,
+		UPDATE_USER
 		;		
 	}
 	

@@ -35,6 +35,7 @@ public abstract class SOSCommand {
 			REQUEST_TYPES.RETR_EVENTS_BY_LOCATION,	
 			REQUEST_TYPES.RETR_EVENT,  
 			REQUEST_TYPES.ATTEND_EVENT,
+			REQUEST_TYPES.UPDATE_USER,
 	};
 	
 	protected SocketIOClient client;
@@ -413,6 +414,38 @@ public abstract class SOSCommand {
 				ret = new SOSCommand(client) {
 					public boolean execute() throws RuntimeException {
 						JSONObject retPayload = EventManager.instance().markAttendance(payload);
+						if(retPayload.has("error")) {
+							this.errorStatus = "argumentError";
+							this.failWith(retPayload);
+							return false;
+						}
+						
+						try {
+							retPayload.put("type", "successAttendingEvent");
+						} catch (JSONException e) {
+							e.printStackTrace();
+						}
+						this.succeedWith(retPayload);						
+						return true;
+					}
+				};
+				break;
+			}
+			case UPDATE_USER: {
+				ret = new SOSCommand(client) {
+					public boolean execute() throws RuntimeException {
+						JSONObject retPayload = UserManager.instance().ChangeUserDetails(payload);
+						if(retPayload == null) {
+							try {
+								retPayload = new JSONObject();
+								retPayload.put("type", "errorIncorrectPasswordEditProfile");
+								this.failWith(retPayload);
+								return false;
+							} catch (JSONException e) {
+								e.printStackTrace();
+							}
+						}
+						
 						if(retPayload.has("error")) {
 							this.errorStatus = "argumentError";
 							this.failWith(retPayload);

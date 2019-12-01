@@ -228,17 +228,15 @@ public class SOSServer {
 				SOSDispatcher.getInstance().dispatch(SOSDispatcher.REQUEST_TYPES.ATTEND_EVENT, client, json);
 			}
 		});		
-				
-//		server.addEventListener("userUpdateProfile", JSONObject.class, new DataListener<JSONObject>() {
-//		public void  onData(final SocketIOClient client, JSONObject json, final AckRequest ackRequest) {
-//			lg.info("User update requested.");
-//			lg.info("Got message JSON: " + json.toString());
-//			SOSDispatcher_Old dispatcher = new SOSDispatcher_Old(client, json, "update");				
-//			dispatcher.Dispatch(EnumerationsAndConstant.REQUEST_TYPE.USER);
-//		}
-//	});
-
 		
+		server.addEventListener("userUpdateProfile", String.class, new SOSEventListener() {
+			@Override
+			public void doOnData(SocketIOClient client, JSONObject json, AckRequest ackRequest) {
+				lg.info("Attending Event Requested.");
+				SOSDispatcher.getInstance().dispatch(SOSDispatcher.REQUEST_TYPES.UPDATE_USER, client, json);
+			}
+		});		
+				
 		server.addConnectListener(new SOSConnectListener());
 
 		server.start();		
