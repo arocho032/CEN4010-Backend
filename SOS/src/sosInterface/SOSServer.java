@@ -213,25 +213,22 @@ public class SOSServer {
 			}
 		});		
 
+		server.addEventListener("eventLoadEvent", String.class, new SOSEventListener() {
+			@Override
+			public void doOnData(SocketIOClient client, JSONObject json, AckRequest ackRequest) {
+				lg.info("eventLoadEventLocation Requested.");
+				SOSDispatcher.getInstance().dispatch(SOSDispatcher.REQUEST_TYPES.RETR_EVENT, client, json);
+			}
+		});		
 
-//		server.addEventListener("eventLoadEvent", JSONObject.class, new DataListener<JSONObject>() {
-//		public void onData(final SocketIOClient client, JSONObject json, final AckRequest ackRequest) {
-//			lg.info("Load chosen event requested.");
-//			lg.info("Got message JSON: " + json.toString());
-//			SOSDispatcher_Old dispatcher = new SOSDispatcher_Old(client, json, "loadOne");
-//			dispatcher.Dispatch(EnumerationsAndConstant.REQUEST_TYPE.EVENT);
-//		}
-//	});
-//		
-//		server.addEventListener("eventAttend", JSONObject.class, new DataListener<JSONObject>() {
-//			public void onData(final SocketIOClient client, JSONObject json, final AckRequest ackRequest) {
-//				lg.info("Event attendance requested.");
-//				lg.info("Got message JSON: " + json.toString());	
-//				SOSDispatcher_Old dispatcher = new SOSDispatcher_Old(client, json, "attend");
-//				dispatcher.Dispatch(EnumerationsAndConstant.REQUEST_TYPE.EVENT);
-//			}
-//		});
-		
+		server.addEventListener("eventAttend", String.class, new SOSEventListener() {
+			@Override
+			public void doOnData(SocketIOClient client, JSONObject json, AckRequest ackRequest) {
+				lg.info("Attending Event Requested.");
+				SOSDispatcher.getInstance().dispatch(SOSDispatcher.REQUEST_TYPES.ATTEND_EVENT, client, json);
+			}
+		});		
+				
 //		server.addEventListener("userUpdateProfile", JSONObject.class, new DataListener<JSONObject>() {
 //		public void  onData(final SocketIOClient client, JSONObject json, final AckRequest ackRequest) {
 //			lg.info("User update requested.");

@@ -190,25 +190,41 @@ public class EventManager {
 	 
 	 /**
 	  * Gets event information based on the ID that is provided.
-	  * @param eventID The ID of the event that details are being requested.
+	  * @param payload The ID of the event that details are being requested.
 	  * @return A JSON object with the event details.
 	  * @throws Exception An exception is thrown if the event is not found in the database.
 	  */
-	 public JSONObject loadEventDetails(int eventID) throws Exception 
+	 public JSONObject loadEventDetails(JSONObject payload) 
 	 {
-		 DataStoreFacade ds = new DataStoreFacade();
 		 
-		 try
-		 {
-			 EventLoader loader = new EventLoader();
-			 
-			 return (loader.loadEventDetails(ds.retrieveEventDetails(eventID))).getJSON();
-		 }
-		 catch(Exception ex)
-		 {
-			 throw new Exception("There was an issue in retrieving the event details.\nMore details: " + ex.getMessage());
-		 }
-		 
+		JSONObject ret = new JSONObject();
+		try {
+	
+			ResultSet set = ds.retrieveEventDetails(payload.getInt("event_id"));
+			Event event = this.el.loadEventDetails(set);
+			ret.put("data", event.getJSON());
+			return ret;
+	
+		} catch (JSONException e) {
+			try {
+				ret.put("error", "true");
+				ret.put("type", "payloadError");
+			} catch (JSONException e1) {
+				e1.printStackTrace();
+			}
+			e.printStackTrace();
+		} catch (Exception e) {
+			try {
+				ret.put("error", "true");
+				ret.put("type", "generalException");
+				ret.put("payload", "There was an issue in retrieving the event details.\nMore details: " + e.getMessage());
+			} catch (JSONException e1) {
+				e1.printStackTrace();
+			}
+			e.printStackTrace();
+		}
+		return ret;	
+		 		 
 	 }
 	 
 	 /**
@@ -255,19 +271,33 @@ public class EventManager {
 	  * @param event_id
 	  * 	the id of the Event
 	  */
-	 public void markAttendance(int userID, int eventID) throws Exception
+	 public JSONObject markAttendance(JSONObject payload)
 	 {
-		 DataStoreFacade ds = new DataStoreFacade();
-		 try
-		 {
-			 ds.saveUserAttendance(userID, eventID);
-		 }
-		 catch(Exception ex)
-		 {
-			 throw new Exception("Marking the attendance failed.\nMore details: " + ex.getMessage());
-		 }
-		 
-		 ds.terminateConnection();
+			JSONObject ret = new JSONObject();
+			try {
+		
+				ds.saveUserAttendance(payload.getInt("user_id"), payload.getInt("event_id"));
+		
+			} catch (JSONException e) {
+				try {
+					ret.put("error", "true");
+					ret.put("type", "payloadError");
+				} catch (JSONException e1) {
+					e1.printStackTrace();
+				}
+				e.printStackTrace();
+			} catch (Exception e) {
+				try {
+					ret.put("error", "true");
+					ret.put("type", "generalException");
+					ret.put("payload", "There was an issue in retrieving the event details.\nMore details: " + e.getMessage());
+				} catch (JSONException e1) {
+					e1.printStackTrace();
+				}
+				e.printStackTrace();
+			}
+			return ret;
+
 	 }
 
 	public JSONObject getEventOfOrganization(JSONObject payload) {

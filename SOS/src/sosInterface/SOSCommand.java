@@ -32,7 +32,9 @@ public abstract class SOSCommand {
 			REQUEST_TYPES.SET_ROLE, 
 			REQUEST_TYPES.EVENT_CANCEL,
 			REQUEST_TYPES.RETR_ORGS_FOR_USER,
-			REQUEST_TYPES.RETR_EVENTS_BY_LOCATION,			
+			REQUEST_TYPES.RETR_EVENTS_BY_LOCATION,	
+			REQUEST_TYPES.RETR_EVENT,  
+			REQUEST_TYPES.ATTEND_EVENT,
 	};
 	
 	protected SocketIOClient client;
@@ -385,7 +387,49 @@ public abstract class SOSCommand {
 					}
 				};
 				break;
-			} 
+			}
+			case RETR_EVENT: {
+				ret = new SOSCommand(client) {
+					public boolean execute() throws RuntimeException {
+						JSONObject retPayload = EventManager.instance().loadEventDetails(payload);
+						if(retPayload.has("error")) {
+							this.errorStatus = "argumentError";
+							this.failWith(retPayload);
+							return false;
+						}
+						
+						try {
+							retPayload.put("type", "successLoadingEvent");
+						} catch (JSONException e) {
+							e.printStackTrace();
+						}
+						this.succeedWith(retPayload);						
+						return true;
+					}
+				};
+				break;
+			}
+			case ATTEND_EVENT: {
+				ret = new SOSCommand(client) {
+					public boolean execute() throws RuntimeException {
+						JSONObject retPayload = EventManager.instance().markAttendance(payload);
+						if(retPayload.has("error")) {
+							this.errorStatus = "argumentError";
+							this.failWith(retPayload);
+							return false;
+						}
+						
+						try {
+							retPayload.put("type", "successAttendingEvent");
+						} catch (JSONException e) {
+							e.printStackTrace();
+						}
+						this.succeedWith(retPayload);						
+						return true;
+					}
+				};
+				break;
+			}
 			default:
 				break;
 		}

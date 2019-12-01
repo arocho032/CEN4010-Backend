@@ -15,11 +15,13 @@ public class EventLoader {
 	{
 		try
 		{
-			loadedEvent = new Event(results);
+			if(results.next())
+				loadedEvent = new Event(results);
 			return loadedEvent;
 		}
 		catch(Exception ex)
 		{
+			ex.printStackTrace();
 			throw new Exception("An error occurred while trying to load event details.\nMore details: " + ex.getMessage());
 		}
 	}
