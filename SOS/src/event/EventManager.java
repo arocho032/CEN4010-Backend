@@ -21,6 +21,8 @@ import org.json.*;
 public class EventManager {
 
 	DataStoreFacade ds;
+	EventLoader el;
+	EventListBuilder elb;
 	
 	/**
  	* A protected or private constructor ensures
@@ -29,6 +31,8 @@ public class EventManager {
 	protected EventManager() {
 		try {
 			this.ds = new DataStoreFacade();
+			this.el = new EventLoader();
+			this.elb = new EventListBuilder();			 
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -56,40 +60,66 @@ public class EventManager {
 	  * @return A JSON array of events.
 	  * @throws Exception Throws an exception if anything fails while attempting to retrieve the events.
 	  */
-	 public JSONArray retrieveListOfEvents() throws Exception 
+	 public JSONObject retrieveListOfEvents(JSONObject payload)
 	 {
-		 
-		 DataStoreFacade ds = new DataStoreFacade();
-		 
-		 try 
-		 {
-			 EventListBuilder builder = new EventListBuilder();
-			 
-			 return builder.getAllAvailableEvents(ds.getEvents()).returnJSONList();
-		 }
-		 catch(Exception ex)
-		 {
-			 throw new Exception("Failed to retrieve list from the database.\nMore details: " + ex.getMessage());
-		 }
-		 
+			JSONObject ret = new JSONObject();
+			try {
+								
+				JSONArray members = elb.getAllAvailableEvents(ds.getEvents()).returnJSONList();					
+				ret.put("data", members.toString());
+				
+			} catch (JSONException e) {
+				try {
+					ret.put("error", "true");
+					ret.put("type", "orgidValueError");
+				} catch (JSONException e1) {
+					e1.printStackTrace();
+				}
+				e.printStackTrace();
+			} catch (Exception e) {
+				try {
+					ret.put("error", "true");
+					ret.put("type", "generalException");
+					ret.put("payload", "An error occurred while attempting to load the details for the Events.\nMore information: " + e.getMessage());
+				} catch (JSONException e1) {
+					e1.printStackTrace();
+				}
+				e.printStackTrace();
+			}
+			return ret;		
+		 		 
 	 }
 	 
-	 public JSONArray retrieveListOfEventsByLocation(double latitude, double longitude) throws Exception
+	 public JSONObject retrieveListOfEventsByLocation(JSONObject payload)
 	 {
 		 
-		 try
-		 {
-			 DataStoreFacade ds = new DataStoreFacade();
-			 
-			 EventListBuilder builder = new EventListBuilder();
-			 
-			 return builder.filterEventsByLocation(ds.filterEventsByLocation(latitude, longitude)).returnJSONList();
-			 
-		 }
-		 catch(Exception ex)
-		 {
-			 throw new Exception("An error occurred while attempting to retrieve all events by location.\nMore details: " + ex.getMessage());
-		 }
+		 
+			JSONObject ret = new JSONObject();
+			try {
+								
+				ResultSet set = ds.filterEventsByLocation(payload.getDouble("lantitude"), payload.getDouble("longitude"));
+				JSONArray events = this.elb.getAllAvailableEvents(set).returnJSONList();
+				ret.put("data", events.toString());
+				
+			} catch (JSONException e) {
+				try {
+					ret.put("error", "true");
+					ret.put("type", "valueError");
+				} catch (JSONException e1) {
+					e1.printStackTrace();
+				}
+				e.printStackTrace();
+			} catch (Exception e) {
+				try {
+					ret.put("error", "true");
+					ret.put("type", "generalException");
+					ret.put("payload", "An error occurred while attempting to retrieve all events by location.\nMore details: " + e.getMessage());
+				} catch (JSONException e1) {
+					e1.printStackTrace();
+				}
+				e.printStackTrace();
+			}
+			return ret;		
 	 }
 
 	/**
@@ -103,35 +133,40 @@ public class EventManager {
 		 
 			JSONObject ret = new JSONObject();
 			try {
+				
 				 EventBuilder builder = new EventBuilder();
 				 
-				 String name = json.getJSONObject("event").getString("eventName");
-				 String description = json.getJSONObject("event").getString("eventDescription");
-				 String date = json.getJSONObject("event").getString("eventDate");
-				 String visibility = json.getJSONObject("event").getString("eventVisibility");
-				 String time = json.getJSONObject("event").getString("eventTime");
-				 String eventType = json.getJSONObject("event").getString("eventType");
-				 String hostedBy = json.getJSONObject("event").getString("hostedBy");
-				 String latCoord = json.getJSONObject("event").getString("latitude");
-				 String longCoord = json.getJSONObject("event").getString("longitude");
-				 
-				 if ( !builder.attemptCreatingEvent(name, 
-						 description, 
-						 date, 
-						 Boolean.getBoolean(visibility), 
-						 time, 
-						 Integer.getInteger(eventType), 
-						 Integer.getInteger(hostedBy),
-						 Double.parseDouble(latCoord), 
-						 Double.parseDouble(longCoord)) )
-				 {
-					 throw new Exception("Invalid event fields.");
+				 try {
+					 builder.setDate(json.getJSONObject("event").getString("eventDate"));
+				 } catch (IllegalArgumentException ex) {
+					 ex.printStackTrace();
+					 ret.put("error", "true");
+					 ret.put("type", "invalidDateError");
 				 }
 				 
-				 this.ds.createNewEvent(name, Double.parseDouble(longCoord), Double.parseDouble(latCoord), 
-						 			description, Boolean.getBoolean(visibility), time, date, 
-						 			Integer.getInteger(eventType), 
-						 			Integer.getInteger(hostedBy));
+				 try {
+					 builder.setTime(json.getJSONObject("event").getString("eventTime") + ":00");
+				 } catch (IllegalArgumentException ex) {
+					 ex.printStackTrace();
+					 ret.put("error", "true");
+					 ret.put("type", "invalidTimeError");
+				 }
+				 
+				 builder
+				 .setName(json.getJSONObject("event").getString("eventName"))
+				 .setDescription(json.getJSONObject("event").getString("eventDescription"))
+				 .setVisibility(json.getJSONObject("event").getBoolean("eventVisibility"))
+				 .setEventType(json.getJSONObject("event").getInt("eventType"))
+				 .setHostedBy(json.getJSONObject("event").getInt("hostedBy"))
+				 .setCoordinates(json.getJSONObject("event").getDouble("latitude"), json.getJSONObject("event").getDouble("longitude"));
+				 
+				 Event event = null;
+				 if(!builder.isNotComplete())
+					 event = builder.build();
+				 
+				 this.ds.createNewEvent(event);
+				 return ret;
+				 
 			} catch (JSONException e) {
 				try {
 					ret.put("error", "true");
@@ -167,7 +202,7 @@ public class EventManager {
 		 {
 			 EventLoader loader = new EventLoader();
 			 
-			 return (loader.loadEventDetails(ds.retrieveEventDetails(eventID))).getJSONObject();
+			 return (loader.loadEventDetails(ds.retrieveEventDetails(eventID))).getJSON();
 		 }
 		 catch(Exception ex)
 		 {
@@ -178,23 +213,37 @@ public class EventManager {
 	 
 	 /**
 	  * Cancels the given event.
-	  * @param event_id The event that is going to be cancelled.
+	  * @param payload The event that is going to be cancelled.
 	  * @throws Exception Throws an exception if the event is not found in the database.
 	  */
-	 public void cancelEvent(int event_id) throws Exception
+	 public JSONObject cancelEvent(JSONObject payload)
 	 {
-		 DataStoreFacade ds = new DataStoreFacade();
 		 
-		 try 
-		 {
-			 ds.cancelEvent(event_id);
-		 }
-		 catch(Exception ex)
-		 {
-			 throw new Exception("There was an issue in cancelling the event.\nMore details: " + ex.getMessage());
-		 }
+			JSONObject ret = new JSONObject();
+			try {
+		
+				 this.ds.cancelEvent(payload.getJSONObject("event").getInt("event_id"));
+				
+			} catch (JSONException e) {
+				try {
+					ret.put("error", "true");
+					ret.put("type", "payloadError");
+				} catch (JSONException e1) {
+					e1.printStackTrace();
+				}
+				e.printStackTrace();
+			} catch (Exception e) {
+				try {
+					ret.put("error", "true");
+					ret.put("type", "generalException");
+					ret.put("payload", "An error occurred while attempting to cancel the Event.\nMore information: " + e.getMessage());
+				} catch (JSONException e1) {
+					e1.printStackTrace();
+				}
+				e.printStackTrace();
+			}
+			return ret;	
 		 
-		 ds.terminateConnection();
 		 
 	 }
 	 
@@ -220,5 +269,57 @@ public class EventManager {
 		 
 		 ds.terminateConnection();
 	 }
+
+	public JSONObject getEventOfOrganization(JSONObject payload) {
+		
+		JSONObject ret = new JSONObject();
+		try {
+			
+			ResultSet set = null;
+			if(payload.getJSONObject("organization").has("organization_id")) {
+			
+				set = this.ds.getEventsByOrganization(payload.getJSONObject("organization").getInt("organization_id"));
+				int skip = payload.getJSONObject("organization").getInt("startIndex");
+				int count = 20;
+				
+				JSONArray members = new JSONArray();
+				while(set.next()) {
+					Event loadedEvent = el.loadEventDetails(set);
+					if(loadedEvent != null) {
+						members.put(loadedEvent.getJSON());
+					} else break;
+					
+				}
+				
+				set.close();
+				ret.put("data", members.toString());
+				
+			} else {
+				ret.put("error", "true");
+				ret.put("type", "noSearchParameter");
+				return ret;
+			}
+			
+		} catch (JSONException e) {
+			try {
+				ret.put("error", "true");
+				ret.put("type", "orgidValueError");
+			} catch (JSONException e1) {
+				e1.printStackTrace();
+			}
+			e.printStackTrace();
+		} catch (Exception e) {
+			try {
+				ret.put("error", "true");
+				ret.put("type", "generalException");
+				ret.put("payload", "An error occurred while attempting to load the details for the organization.\nMore information: " + e.getMessage());
+			} catch (JSONException e1) {
+				e1.printStackTrace();
+			}
+			e.printStackTrace();
+		}
+		return ret;
+
+	}
 	 
 }

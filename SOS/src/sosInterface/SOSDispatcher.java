@@ -9,22 +9,21 @@ import com.corundumstudio.socketio.SocketIOClient;
 public class SOSDispatcher {
 
 	public enum REQUEST_TYPES {
-		CREATE_USER ("createUser"),
-		CREATE_ORG ("createOrganization"),
-		RETR_ORGS ("retrieveOrganizations"),
-		RETR_ORG ("retrieveOrganizations"),
-		LOGIN ("login"),
-		LOAD_USER ("loadUser"), 
-		RETR_MEMBER_FOR_ORG ("retrMemberForOrg"), 
-		RETR_EVENT_FOR_ORG ("retrEventForOrg"), 
-		CREATE_EVENT ("createEvent"),
-		;
-		
-		public final String code;
-		REQUEST_TYPES(String code) {
-			this.code = code;
-		}
-		
+		CREATE_USER,
+		CREATE_ORG,
+		RETR_ORGS,
+		RETR_ORG,
+		LOGIN,
+		LOAD_USER, 
+		RETR_MEMBER_FOR_ORG, 
+		RETR_EVENT_FOR_ORG, 
+		CREATE_EVENT, 
+		RETR_EVENTS_FOR_ORG, 
+		RETR_ALL_EVENTS, 
+		JOIN_ORG, 
+		SET_ROLE, 
+		EVENT_CANCEL, RETR_ORGS_FOR_USER, RETR_EVENTS_BY_LOCATION,
+		;		
 	}
 	
 	static private SOSDispatcher _instance = null;

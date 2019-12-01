@@ -2,7 +2,9 @@ package storage;
 
 import java.sql.*;
 import java.text.*;
+import java.util.Arrays;
 
+import event.Event;
 import organization.Organization;
 import user.User;
 
@@ -80,7 +82,7 @@ public class DataStoreFacade {
 			procedure.setString(1, roleName);
 			procedure.setInt(2, organizationID);
 			procedure.setInt(3, userID);
-			
+
 			for( int index = 0; index < privileges.length; index++ )
 			{
 				procedure.setBoolean(index + 4, privileges[index]);
@@ -131,7 +133,6 @@ public class DataStoreFacade {
            int v = rs.getInt("user_id");
            String em = rs.getString("email");
            arr = em.replace("\n", ", ");
-           System.out.println(v);
         }	
         
         
@@ -281,8 +282,7 @@ public class DataStoreFacade {
 	 * @param hostedBy The organization that is hosting the event.
 	 * @throws Exception Throws an exception if the parameters are not in the expected format and if the organization hosting the event no longer exists.
 	 */
-	public void createNewEvent(String name, double longCoordinate, double latCoordinate, String description, boolean visibility, 
-							   String time, String date, int eventType, int hostedBy ) throws Exception
+	public void createNewEvent(Event event) throws Exception
 	{
 		try
 		{
@@ -290,27 +290,26 @@ public class DataStoreFacade {
 			
 			CallableStatement procedure = connect.prepareCall(query);
 			
-			procedure.setString(1, name);
-			procedure.setDouble(2, longCoordinate);
-			procedure.setDouble(3, latCoordinate);
-			procedure.setString(4, description);
-			procedure.setBoolean(5, visibility);
+			procedure.setString(1, event.getName());
+			procedure.setDouble(2, event.getLatCoordinate());
+			procedure.setDouble(3, event.getLongCoordinate());
+			procedure.setString(4, event.getDescription());
+			procedure.setBoolean(5, event.isVisibility());
 			
-			DateFormat transform = new SimpleDateFormat("hh:mm:ss a");
+			DateFormat transform = new SimpleDateFormat("hh:mm:ss");
+			Time sqlTime = new Time ((transform.parse(event.getTime())).getTime());
 			
-			Time sqlTime = new Time ((transform.parse(time)).getTime());
-			
-			transform = new SimpleDateFormat("MM/dd/yyyy");
-			
-			Date sqlDate = new Date (transform.parse(date).getTime());
+			transform = new SimpleDateFormat("yy/MM/dd");
+			Date sqlDate = new Date (transform.parse(event.getDate()).getTime());
 	
-			procedure.setTime(6,sqlTime );
+			procedure.setTime(6, sqlTime );
 			procedure.setDate(7, sqlDate);
-			procedure.setInt(8, eventType);
-			procedure.setInt(9, hostedBy);
 			
+			procedure.setInt(8, event.getEventType());
+			procedure.setInt(9, event.getHostedBy());
 			
 			procedure.execute();
+					
 		}
 		catch(Exception ex)
 		{
@@ -376,6 +375,43 @@ public class DataStoreFacade {
 			throw new Exception("There was an error while retrieving the events.\nMore details:" + ex.getMessage());
 		}
 	}
+	
+	public ResultSet getEventsByOrganization(int orgID) throws Exception
+	{
+		try
+		{
+			final String query = "CALL `sos_storage`.`get_events_from_organization`(?);";
+			
+			CallableStatement procedure = connect.prepareCall(query);
+			procedure.setInt(1, orgID);			
+			procedure.execute();
+			return procedure.getResultSet();
+			
+		}
+		catch(Exception ex)
+		{
+			throw new Exception("There was an error while retrieving the events.\nMore details:" + ex.getMessage());
+		}
+	}
+	
+	public ResultSet getEventsByUser(int userID) throws Exception
+	{
+		try
+		{
+			final String query = "CALL `sos_storage`.`get_events_from_user`(?);";
+			
+			CallableStatement procedure = connect.prepareCall(query);
+			procedure.setInt(1, userID);			
+			procedure.execute();
+			return procedure.getResultSet();
+			
+		}
+		catch(Exception ex)
+		{
+			throw new Exception("There was an error while retrieving the events.\nMore details:" + ex.getMessage());
+		}
+	}
+	
 	
 	public ResultSet retrieveUserByUsername(String username) throws Exception {
 		

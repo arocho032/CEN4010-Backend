@@ -13,6 +13,7 @@ import utils.JSONTranslator;
  */
 public class Event {
 	
+	protected int eventId;
 	protected String name;
 	protected String description;
 	protected String date;
@@ -22,6 +23,7 @@ public class Event {
 	protected int hostedBy;
 	protected double latCoordinate;
 	protected double longCoordinate;
+	protected boolean isCancelled = false;
 	
 	private JSONObject jsonTranslation;
 
@@ -35,36 +37,108 @@ public class Event {
 	{
 		try
 		{
-			jsonTranslation = JSONTranslator.resultSetToJSONObject(results);
+			 jsonTranslation = JSONTranslator.resultSetToJSONObject(results);
+			 eventId = jsonTranslation.getInt("event_id");
+			 name = jsonTranslation.getString("name");
+			 description = jsonTranslation.getString("description");
+			 date = jsonTranslation.getString("date");
+			 visibility = jsonTranslation.getBoolean("visibility");
+			 time = jsonTranslation.getString("time");
+			 eventType = 1;
+			 hostedBy = jsonTranslation.getInt("hosted_by");
+			 latCoordinate = jsonTranslation.getDouble("lat_coordinate");
+			 longCoordinate = jsonTranslation.getDouble("long_coordinate");		 
+			 isCancelled = jsonTranslation.getBoolean("is_cancelled");		 
+		
+		}
+		catch (JSONException e) 
+		{
+			e.printStackTrace();
 		}
 		catch(Exception ex)
 		{
+			ex.printStackTrace();
 			throw new Exception("Failed to parse event to JSON.\nMore Details: " + ex.getMessage());
 		}
 	}
 	
-	
-	protected Event(String name, String description, String date, boolean visibility, String time, int eventType,
-					int hostedBy, double lat, double lon)
-	{
-		this.name = name;
-		this.description = description;
-		this.date = date;
-		this.visibility = visibility;
-		this.time = time;
-		this.eventType = eventType;
-		this.hostedBy = hostedBy;
-		this.latCoordinate = lat;
-		this.longCoordinate = lon;
+	protected int getEventID() {
+		return eventId;
 	}
 	
-	protected JSONObject getJSONObject()
+	protected JSONObject getJSON()
 	{
 		return this.jsonTranslation;
 	}
-	
-	
-	
-	
+
+	/**
+	 * @return the name
+	 */
+	public String getName() {
+		return name;
+	}
+
+	/**
+	 * @return the description
+	 */
+	public String getDescription() {
+		return description;
+	}
+
+	/**
+	 * @return the date
+	 */
+	public String getDate() {
+		return date;
+	}
+
+	/**
+	 * @return the visibility
+	 */
+	public boolean isVisibility() {
+		return visibility;
+	}
+
+	/**
+	 * @return the time
+	 */
+	public String getTime() {
+		return time;
+	}
+
+	/**
+	 * @return the eventType
+	 */
+	public int getEventType() {
+		return eventType;
+	}
+
+	/**
+	 * @return the hostedBy
+	 */
+	public int getHostedBy() {
+		return hostedBy;
+	}
+
+	/**
+	 * @return the latCoordinate
+	 */
+	public double getLatCoordinate() {
+		return latCoordinate;
+	}
+
+	/**
+	 * @return the longCoordinate
+	 */
+	public double getLongCoordinate() {
+		return longCoordinate;
+	}
+
+	/**
+	 * @return the jsonTranslation
+	 */
+	public JSONObject getJsonTranslation() {
+		return jsonTranslation;
+	}
 
 }

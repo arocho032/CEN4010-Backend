@@ -26,6 +26,13 @@ public abstract class SOSCommand {
 			REQUEST_TYPES.RETR_MEMBER_FOR_ORG,
 			REQUEST_TYPES.RETR_EVENT_FOR_ORG,
 			REQUEST_TYPES.CREATE_EVENT,
+			REQUEST_TYPES.RETR_EVENTS_FOR_ORG,
+			REQUEST_TYPES.RETR_ALL_EVENTS,
+			REQUEST_TYPES.JOIN_ORG, 
+			REQUEST_TYPES.SET_ROLE, 
+			REQUEST_TYPES.EVENT_CANCEL,
+			REQUEST_TYPES.RETR_ORGS_FOR_USER,
+			REQUEST_TYPES.RETR_EVENTS_BY_LOCATION,			
 	};
 	
 	protected SocketIOClient client;
@@ -104,11 +111,9 @@ public abstract class SOSCommand {
 						
 						try {
 
-							System.out.println("Trace here.");
 							JSONArray values = retPayload.getJSONArray("values");
 							JSONArray split = new JSONArray();
 							retPayload = new JSONObject();
-							System.out.println("Trace here.");
 							
 							int startIndex = payload.getJSONObject("organization").getInt("startIndex");
 							int count = payload.getJSONObject("organization").getInt("count");
@@ -206,7 +211,6 @@ public abstract class SOSCommand {
 							this.failWith(retPayload);
 							return false;
 						}
-						
 						try {
 							retPayload.put("type", "successMembersLoaded");
 						} catch (JSONException e) {
@@ -218,6 +222,48 @@ public abstract class SOSCommand {
 				};
 				break;
 			}
+			case RETR_EVENTS_FOR_ORG: {
+				ret = new SOSCommand(client) {
+					public boolean execute() throws RuntimeException {
+						JSONObject retPayload = EventManager.instance().getEventOfOrganization(payload);
+						if(retPayload.has("error")) {
+							this.errorStatus = "argumentError";
+							this.failWith(retPayload);
+							return false;
+						}
+						
+						try {
+							retPayload.put("type", "successOrgEventsLoaded");
+						} catch (JSONException e) {
+							e.printStackTrace();
+						}
+						this.succeedWith(retPayload);						
+						return true;
+					}
+				};
+				break;
+			} 
+			case RETR_ALL_EVENTS: {
+				ret = new SOSCommand(client) {
+					public boolean execute() throws RuntimeException {
+						JSONObject retPayload = EventManager.instance().retrieveListOfEvents(payload);
+						if(retPayload.has("error")) {
+							this.errorStatus = "argumentError";
+							this.failWith(retPayload);
+							return false;
+						}
+						
+						try {
+							retPayload.put("type", "successAllEventsLoaded");
+						} catch (JSONException e) {
+							e.printStackTrace();
+						}
+						this.succeedWith(retPayload);						
+						return true;
+					}
+				};
+				break;
+			} 
 			case CREATE_EVENT:
 				ret = new SOSCommand(client) {
 					public boolean execute() throws RuntimeException {
@@ -227,9 +273,8 @@ public abstract class SOSCommand {
 							this.failWith(retPayload);
 							return false;
 						}
-						
 						try {
-							retPayload.put("type", "successMembersLoaded");
+							retPayload.put("type", "successEventCreation");
 						} catch (JSONException e) {
 							e.printStackTrace();
 						}
@@ -239,6 +284,108 @@ public abstract class SOSCommand {
 					}
 				};
 				break;
+			case JOIN_ORG: {
+				ret = new SOSCommand(client) {
+					public boolean execute() throws RuntimeException {
+						JSONObject retPayload = OrganizationManager.instance().joinOrganization(payload);
+						if(retPayload.has("error")) {
+							this.errorStatus = "argumentError";
+							this.failWith(retPayload);
+							return false;
+						}
+						try {
+							retPayload.put("type", "successJoinOrganization");
+						} catch (JSONException e) {
+							e.printStackTrace();
+						}
+						this.succeedWith(retPayload);						
+						return true;
+					}
+				};
+				break;
+			}
+			case SET_ROLE: {
+				ret = new SOSCommand(client) {
+					public boolean execute() throws RuntimeException {
+						JSONObject retPayload = OrganizationManager.instance().grantRole(payload);
+						if(retPayload.has("error")) {
+							this.errorStatus = "argumentError";
+							this.failWith(retPayload);
+							return false;
+						}
+						try {
+							retPayload.put("type", "successGrantingRole");
+						} catch (JSONException e) {
+							e.printStackTrace();
+						}
+						this.succeedWith(retPayload);						
+						return true;
+					}
+				};
+				break;		
+			}
+			case EVENT_CANCEL: {
+				ret = new SOSCommand(client) {
+					public boolean execute() throws RuntimeException {
+						JSONObject retPayload = EventManager.instance().cancelEvent(payload);
+						if(retPayload.has("error")) {
+							this.errorStatus = "argumentError";
+							this.failWith(retPayload);
+							return false;
+						}
+						try {
+							retPayload.put("type", "successEventCancel");
+						} catch (JSONException e) {
+							e.printStackTrace();
+						}
+						this.succeedWith(retPayload);						
+						return true;
+					}
+				};
+				break;		
+			}
+			case RETR_ORGS_FOR_USER: {
+				ret = new SOSCommand(client) {
+					public boolean execute() throws RuntimeException {
+						JSONObject retPayload = OrganizationManager.instance().getAllOrganizations(payload);
+						if(retPayload.has("error")) {
+							this.errorStatus = "argumentError";
+							this.failWith(retPayload);
+							return false;
+						}
+						
+						try {
+							retPayload.put("type", "successOrgForUserLoaded");
+						} catch (JSONException e) {
+							e.printStackTrace();
+						}
+						this.succeedWith(retPayload);						
+						return true;
+					}
+				};
+				break;
+			} 
+			case RETR_EVENTS_BY_LOCATION: {
+				ret = new SOSCommand(client) {
+					public boolean execute() throws RuntimeException {
+						JSONObject retPayload = EventManager.instance().retrieveListOfEventsByLocation(payload);
+						if(retPayload.has("error")) {
+							this.errorStatus = "argumentError";
+							this.failWith(retPayload);
+							return false;
+						}
+						
+						try {
+							retPayload.put("type", "successEventsByLocation");
+						} catch (JSONException e) {
+							e.printStackTrace();
+						}
+						this.succeedWith(retPayload);						
+						return true;
+					}
+				};
+				break;
+			} 
 			default:
 				break;
 		}

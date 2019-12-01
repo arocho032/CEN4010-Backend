@@ -32,7 +32,6 @@ public class User {
 		try
 		{
 			jsonTranslation = JSONTranslator.resultSetToJSONObject(set);
-			System.out.println(jsonTranslation.toString());
 			this.name = jsonTranslation.getString("name");
 			this.user_id = jsonTranslation.getInt("user_id");
 			this.userName = jsonTranslation.getString("user_name");

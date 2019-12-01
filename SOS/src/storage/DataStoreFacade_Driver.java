@@ -13,10 +13,8 @@ public class DataStoreFacade_Driver {
 		try
 		{
 			DataStoreFacade ds = new DataStoreFacade();
-//			ds.registerNewUser("Test", "t@g.com", "Name", "userName");
 			JSONObject json = JSONTranslator.resultSetToJSONObject(ds.retrieveEventDetails(1));
 			
-			System.out.println(json);	
 			ds.terminateConnection();
 			
 		}

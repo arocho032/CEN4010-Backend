@@ -66,27 +66,42 @@ public class OrganizationManager {
 	 * @param privs
 	 * 	the unique ids of the Privileges given to the User.
 	 */
-	public void grantRole(int userId, int orgId, String roleName, JSONArray privs) throws Exception
+	public JSONObject grantRole(JSONObject payload)
 	{
-		try
-		{
-			DataStoreFacade ds = new DataStoreFacade();
-
+		
+		JSONObject ret = new JSONObject();
+		try {
+						
 			boolean[] privMatrix = new boolean[5];
-
-			for(int index = 0; index < privs.length(); index++)
-			{
+			for(int index = 0; index < 5; index++) 
+				privMatrix[index] = false;
+			
+			JSONArray privs = payload.getJSONArray("roleId");
+			for (int index = 1; index < privs.length(); index++)
 				privMatrix[index] = privs.getBoolean(index);
+			
+			this.ds.addNewRoleToOrganization("userRole", payload.getInt("organization_id"), payload.getInt("username"), privMatrix);
+			return ret;
+
+		} catch (JSONException e) {
+			try {
+				ret.put("error", "true");
+				ret.put("type", "orgidValueError");
+			} catch (JSONException e1) {
+				e1.printStackTrace();
 			}
-
-			ds.addNewRoleToOrganization(roleName, orgId, userId, privMatrix);
-
-			ds.terminateConnection();
+			e.printStackTrace();
+		} catch (Exception e) {
+			try {
+				ret.put("error", "true");
+				ret.put("type", "generalException");
+				ret.put("payload", "An error occurred while attempting to load the details for the organization.\nMore information: " + e.getMessage());
+			} catch (JSONException e1) {
+				e1.printStackTrace();
+			}
+			e.printStackTrace();
 		}
-		catch(Exception ex)
-		{
-			throw new Exception("There was an error while attempting to grant the new role to the user.\nMore detials: " +ex.getMessage());
-		}
+		return ret;		
 
 	}
 
@@ -197,7 +212,6 @@ public class OrganizationManager {
 		try {
 			JSONArray array = JSONTranslator.resultSetToJSONArray(this.ds.retrievePublicOrganizations());
 			retPayload.put("values", array);
-			System.out.println(array.toString());
 		} catch (Exception ex) {
 			ex.printStackTrace();
 			try {
@@ -217,11 +231,11 @@ public class OrganizationManager {
 	 * @return A JSONObject with all the organizations the user is a part of.
 	 * @throws Exception Throws an exception if there was an error retrieving the organizations for the user.
 	 */
-	public JSONObject getAllOrganizations(int userID)
+	public JSONObject getAllOrganizations(JSONObject payload)
 	{
 		JSONObject retPayload = new JSONObject();
 		try {
-			JSONArray array = JSONTranslator.resultSetToJSONArray(this.ds.retrieveOrganizationsForUser(userID));
+			JSONArray array = JSONTranslator.resultSetToJSONArray(this.ds.retrieveOrganizationsForUser(payload.getInt("user_id")));
 			retPayload.put("values", array);
 		} catch (Exception ex) {
 			ex.printStackTrace();
@@ -242,18 +256,33 @@ public class OrganizationManager {
 	 * @param organizationID The ID of the organization that the user wants to join.
 	 * @throws Exception Throws an exception if there was an error preventing the user from joining said organization.
 	 */
-	public void joinOrganization(int userID, int organizationID) throws Exception
+	public JSONObject joinOrganization(JSONObject payload)
 	{
-		try
-		{
-			DataStoreFacade ds = new DataStoreFacade();
+		JSONObject ret = new JSONObject();
+		try {
+						
+			this.ds.joinOrganization(payload.getInt("username"), payload.getInt("organization_id"));
+			return ret;
 
-			ds.joinOrganization(userID, organizationID);
+		} catch (JSONException e) {
+			try {
+				ret.put("error", "true");
+				ret.put("type", "orgidValueError");
+			} catch (JSONException e1) {
+				e1.printStackTrace();
+			}
+			e.printStackTrace();
+		} catch (Exception e) {
+			try {
+				ret.put("error", "true");
+				ret.put("type", "generalException");
+				ret.put("payload", "An error occurred while attempting to load the details for the organization.\nMore information: " + e.getMessage());
+			} catch (JSONException e1) {
+				e1.printStackTrace();
+			}
+			e.printStackTrace();
 		}
-		catch(Exception ex)
-		{
-			throw new Exception("The user could not join the organization.\nMore details: " + ex.getMessage());
-		}
+		return ret;
 	}
 
 

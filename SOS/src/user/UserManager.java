@@ -239,13 +239,11 @@ public class UserManager {
 					User loadedUser = ul.LoadUser(set);
 					if(loadedUser != null) {
 						members.put(loadedUser.getJSON());
-						System.out.println(loadedUser.getJSON());
 					} else break;
 					
 				}
 				
 				set.close();
-				System.out.println(members.toString());
 				ret.put("data", members.toString());
 				
 			} else {
