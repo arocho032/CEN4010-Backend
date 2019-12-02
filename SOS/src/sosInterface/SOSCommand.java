@@ -453,7 +453,7 @@ public abstract class SOSCommand {
 						}
 						
 						try {
-							retPayload.put("type", "successAttendingEvent");
+							retPayload.put("type", "successChangingProfileInfo");
 						} catch (JSONException e) {
 							e.printStackTrace();
 						}
