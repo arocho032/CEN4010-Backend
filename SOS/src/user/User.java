@@ -14,11 +14,12 @@ import java.sql.*;
  */
 public class User {
 	
-	private String name;
-	private String userName;
-	private String password;
-	private String privacy;
-	private String email;
+	protected int user_id = -1;
+	protected String name;
+	protected String userName;
+	protected String password;
+	protected String privacy = "PUBLIC";
+	protected String email = "test@gmail.com";
 	
 	private JSONObject jsonTranslation;
 
@@ -31,6 +32,13 @@ public class User {
 		try
 		{
 			jsonTranslation = JSONTranslator.resultSetToJSONObject(set);
+			this.name = jsonTranslation.getString("name");
+			this.user_id = jsonTranslation.getInt("user_id");
+			this.userName = jsonTranslation.getString("user_name");
+			this.password = jsonTranslation.getString("password");
+			this.privacy = jsonTranslation.getString("privacy");
+			this.email = jsonTranslation.getString("email");
+			
 		}
 		catch(Exception ex)
 		{
@@ -38,42 +46,53 @@ public class User {
 		}
 		
 	}
-	
-	public User(String setName, String setUserName, String setPassword, String setPrivacy, String setEmail) throws Exception
-	{
-		this.name = setName;
-		this.userName = setUserName;
-		this.password = setPassword;
-//		
-//		if(setPrivacy != "PUBLIC" || setPrivacy != "PRIVATE")
-//		{
-//			throw new Exception("Incorrect format for privacy value.");
-//		}
 		
-		this.privacy = setPrivacy;
-		
-		String[] email = setEmail.split("@");
-		
-		if(email.length != 2)
-		{
-			throw new Exception("Incorrect format for User Email");
-		}
-		
-		if(!email[1].contains("."))
-		{
-			throw new Exception("Incorrect format for User Email");
-		}
-		
-		this.email = setEmail;
-		
-	}
-	
-	public JSONObject getJSON()
-	{
+	public User() {}
+
+	public JSONObject getJSON() {
 		return this.jsonTranslation;
 	}
 	
-	
-	
+	/**
+	 * @return the name
+	 */
+	public String getName() {
+		return name;
+	}
+
+	/**
+	 * @return the userName
+	 */
+	public String getUserName() {
+		return userName;
+	}
+
+	/**
+	 * @return the password
+	 */
+	public String getPassword() {
+		return password;
+	}
+
+	/**
+	 * @return the privacy
+	 */
+	public String getPrivacy() {
+		return privacy;
+	}
+
+	/**
+	 * @return the email
+	 */
+	public String getEmail() {
+		return email;
+	}
+
+	/**
+	 * @return the user_id
+	 */
+	public int getUser_id() {
+		return user_id;
+	}
 	
 }

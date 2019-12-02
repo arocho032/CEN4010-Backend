@@ -7,32 +7,51 @@ package organization;
  */
 public class OrganizationBuilder {
 
-	Organization organization;
+	public static final String PRIVACY_PUBLIC = "PUBLIC";
+	public static final String PRIVACY_PRIVATE = "PRIVATE";
+	private Organization organization;
 	
 	/**
 	 * Creates a new OrganizationBuilder to instantiate the new Event.  
 	 */
 	public OrganizationBuilder() 
 	{
-		
-		organization = null;
-		
+		organization = new Organization();	
 	};
 
-	public boolean attemptToCreateAnOrganization(String name, String privacy, String description, String requirements)
-	{
-		boolean status = true;
-		
-		if (!privacy.equals("PUBLIC") && !privacy.equals("PRIVATE"))
-		{
-			return false;
-		}
-		
-		organization = new Organization(name, privacy, description, requirements);
-		
-		return status;
+	public OrganizationBuilder setName(String name) {
+		this.organization.name = name;
+		return this;
 	}
 	
+	public OrganizationBuilder setPrivacy(String privacy) throws IllegalArgumentException {
+		if (!privacy.equals(PRIVACY_PUBLIC) && !privacy.equals(PRIVACY_PRIVATE))
+			throw new IllegalArgumentException("Invalid Privacy Value: " + privacy);
+		this.organization.privacy = privacy;
+		return this;
+	}
 	
-
+	public OrganizationBuilder setDescription(String description) {
+		this.organization.description = description;
+		return this;
+	}
+	
+	public OrganizationBuilder setRequirements(String requirements) {
+		this.organization.requirements = requirements;
+		return this;
+	}
+	
+	public Organization build() throws IllegalArgumentException {
+		if(this.isNotComplete())
+			throw new IllegalArgumentException("Invalid build. Missing some components.");
+		return this.organization;
+	}
+	
+	public boolean isNotComplete() {
+		return this.organization.name == null
+				|| this.organization.description == null
+				|| this.organization.privacy == null
+				|| this.organization.requirements == null;
+	}
+	
 }

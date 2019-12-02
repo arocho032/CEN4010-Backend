@@ -28,11 +28,11 @@ public class UserLoader {
 		try
 		{
 			user = new User(results);
-			
 			return this.user;
 		}
 		catch(Exception ex)
 		{
+			ex.printStackTrace();
 			throw new Exception("There was an error loading the user.\nMore details: " + ex.getMessage());
 		}
 		

@@ -2,7 +2,11 @@ package storage;
 
 import java.sql.*;
 import java.text.*;
-import org.json.*;
+import java.util.Arrays;
+
+import event.Event;
+import organization.Organization;
+import user.User;
 
 ///**
 // * A Façade object that acts as the interface for the SOS 
@@ -20,13 +24,7 @@ import org.json.*;
 public class DataStoreFacade {
 	
 	private Connection connect = null;
-	private Statement statement = null;
-	private PreparedStatement preparedStatement = null;
-	private ResultSet resultSet = null;
-	
-	final private String host = "localhost:3306";
-	final private String user = "root";
-	final private String password = "SOSDBCEN4010!";
+	final private String password = "SOSDBCEN4010";
 	
 	
 	/**
@@ -39,6 +37,7 @@ public class DataStoreFacade {
 		{
 			Class.forName("com.mysql.cj.jdbc.Driver");
 			
+			// Change this to a const.
 			connect = DriverManager
 					.getConnection("jdbc:mysql://localhost:3306/?user=root&password=" + password);
 		}
@@ -83,7 +82,7 @@ public class DataStoreFacade {
 			procedure.setString(1, roleName);
 			procedure.setInt(2, organizationID);
 			procedure.setInt(3, userID);
-			
+
 			for( int index = 0; index < privileges.length; index++ )
 			{
 				procedure.setBoolean(index + 4, privileges[index]);
@@ -124,6 +123,19 @@ public class DataStoreFacade {
 		{
 			throw new Exception("Failed to retrieve user details.\nMore details: " + ex.getMessage());
 		}
+	}
+	
+	public static void main(String[] args) throws Exception {
+		DataStoreFacade ds = new DataStoreFacade();
+		ResultSet rs = ds.retrieveUserByUsername("jdoe001");
+        String arr = null;
+        while (rs.next()) {
+           int v = rs.getInt("user_id");
+           String em = rs.getString("email");
+           arr = em.replace("\n", ", ");
+        }	
+        
+        
 	}
 	
 	/**
@@ -191,11 +203,8 @@ public class DataStoreFacade {
 		try
 		{
 			final String query = "CALL `sos_storage`.`get_all_organizations`();";
-			
-			CallableStatement procedure = connect.prepareCall(query);
-			
+			CallableStatement procedure = connect.prepareCall(query);		
 			procedure.execute();
-			
 			return procedure.getResultSet();
 					
 		}
@@ -241,27 +250,22 @@ public class DataStoreFacade {
 	 * @param userName The user's name.
 	 * @throws Exception An exception is thrown when the new user information fails to be stored in the SOS database.
 	 */
-	public void registerNewUser(String encryptedPassword, String email, String name, String userName ) throws Exception
+	public void registerNewUser(User user)
 	{
 		
-		try
-		{
-			final String query = "CALL sos_storage.user_register(?,?,?,?)";
-			
+		final String query = "CALL sos_storage.user_register(?,?,?,?,?)";
+		try {
 			CallableStatement procedure = connect.prepareCall(query);
-			
-			procedure.setString(1, encryptedPassword);
-			procedure.setString(2, email);
-			procedure.setString(3, name);
-			procedure.setString(4, userName);
-			
+			procedure.setString(1, user.getPassword());
+			procedure.setString(2, user.getEmail());
+			procedure.setString(3, user.getName());
+			procedure.setString(4, user.getUserName());
+			procedure.setString(5, user.getPrivacy());
 			procedure.execute();
+		} catch (SQLException e) {
+			e.printStackTrace();
 		}
-		catch(Exception ex)
-		{
-			throw new Exception("There was an error registering the new user.\nMore Details: " + ex.getMessage());
-		}
-		
+	
 	}
 	
 	
@@ -278,8 +282,7 @@ public class DataStoreFacade {
 	 * @param hostedBy The organization that is hosting the event.
 	 * @throws Exception Throws an exception if the parameters are not in the expected format and if the organization hosting the event no longer exists.
 	 */
-	public void createNewEvent(String name, double longCoordinate, double latCoordinate, String description, boolean visibility, 
-							   String time, String date, int eventType, int hostedBy ) throws Exception
+	public void createNewEvent(Event event) throws Exception
 	{
 		try
 		{
@@ -287,27 +290,26 @@ public class DataStoreFacade {
 			
 			CallableStatement procedure = connect.prepareCall(query);
 			
-			procedure.setString(1, name);
-			procedure.setDouble(2, longCoordinate);
-			procedure.setDouble(3, latCoordinate);
-			procedure.setString(4, description);
-			procedure.setBoolean(5, visibility);
+			procedure.setString(1, event.getName());
+			procedure.setDouble(2, event.getLatCoordinate());
+			procedure.setDouble(3, event.getLongCoordinate());
+			procedure.setString(4, event.getDescription());
+			procedure.setBoolean(5, event.isVisibility());
 			
-			DateFormat transform = new SimpleDateFormat("hh:mm:ss a");
+			DateFormat transform = new SimpleDateFormat("hh:mm:ss");
+			Time sqlTime = new Time ((transform.parse(event.getTime())).getTime());
 			
-			Time sqlTime = new Time ((transform.parse(time)).getTime());
-			
-			transform = new SimpleDateFormat("MM/dd/yyyy");
-			
-			Date sqlDate = new Date (transform.parse(date).getTime());
+			transform = new SimpleDateFormat("yy/MM/dd");
+			Date sqlDate = new Date (transform.parse(event.getDate()).getTime());
 	
-			procedure.setTime(6,sqlTime );
+			procedure.setTime(6, sqlTime );
 			procedure.setDate(7, sqlDate);
-			procedure.setInt(8, eventType);
-			procedure.setInt(9, hostedBy);
 			
+			procedure.setInt(8, event.getEventType());
+			procedure.setInt(9, event.getHostedBy());
 			
 			procedure.execute();
+					
 		}
 		catch(Exception ex)
 		{
@@ -374,6 +376,60 @@ public class DataStoreFacade {
 		}
 	}
 	
+	public ResultSet getEventsByOrganization(int orgID) throws Exception
+	{
+		try
+		{
+			final String query = "CALL `sos_storage`.`get_events_from_organization`(?);";
+			
+			CallableStatement procedure = connect.prepareCall(query);
+			procedure.setInt(1, orgID);			
+			procedure.execute();
+			return procedure.getResultSet();
+			
+		}
+		catch(Exception ex)
+		{
+			throw new Exception("There was an error while retrieving the events.\nMore details:" + ex.getMessage());
+		}
+	}
+	
+	public ResultSet getEventsByUser(int userID) throws Exception
+	{
+		try
+		{
+			final String query = "CALL `sos_storage`.`get_events_from_user`(?);";
+			
+			CallableStatement procedure = connect.prepareCall(query);
+			procedure.setInt(1, userID);			
+			procedure.execute();
+			return procedure.getResultSet();
+			
+		}
+		catch(Exception ex)
+		{
+			throw new Exception("There was an error while retrieving the events.\nMore details:" + ex.getMessage());
+		}
+	}
+	
+	
+	public ResultSet retrieveUserByUsername(String username) throws Exception {
+		
+		try
+		{
+			final String query = "CALL `sos_storage`.`get_user_by_username`(?);";
+			CallableStatement procedure = connect.prepareCall(query);
+			procedure.setString(1,  username);
+			procedure.execute();
+			ResultSet set = procedure.getResultSet();
+			return set;
+			
+		} catch (Exception ex) {
+			throw new Exception("There was an error while retrieving the events.\nMore details:" + ex.getMessage());
+		}
+		
+	}
+	
 	/**
 	 * Requests to cancel the event in the database.
 	 * @param eventID The ID of the event that needs to be cancelled.
@@ -436,7 +492,7 @@ public class DataStoreFacade {
 	 * @param userID The user ID of the user creating the organization.
 	 * @throws Exception Throws an exception if there is an issue storing the organization into the database.
 	 */
-	public void createNewOrganization(String name, String description, String privacy, String requirements, int userID ) throws Exception
+	public void createNewOrganization(Organization org, int userID) throws Exception
 	{
 		try
 		{
@@ -444,13 +500,13 @@ public class DataStoreFacade {
 			
 			CallableStatement procedure = connect.prepareCall(query);
 			
-			procedure.setString(1, name);
-			procedure.setString(2, description);
-			procedure.setString(3, privacy);
-			procedure.setString(4, requirements);
+			procedure.setString(1, org.getName());
+			procedure.setString(2, org.getDescription());
+			procedure.setString(3, org.getPrivacy());
+			procedure.setString(4, org.getRequirements());
 			procedure.setInt(5, userID);
-			
 			procedure.execute();
+			
 		}
 		catch(Exception ex)
 		{
@@ -465,7 +521,7 @@ public class DataStoreFacade {
 	 * @param eventID The ID of the event that the user is attending.
 	 * @throws Exception Throws an exception if there is an issue in storing the attendance of the user in the database.
 	 */
-	public void saveUserAttendance(long userID,long eventID) throws Exception
+	public void saveUserAttendance(long userID, long eventID) throws Exception
 	{
 		try
 		{
@@ -492,23 +548,30 @@ public class DataStoreFacade {
 	 * @param privacy The modified privacy assigned to the user in the database.
 	 * @throws Exception If the email is already present in the database under a different user then an exception is thrown.
 	 */
-	public void updateUserInformation(int userID, String email, String privacy) throws Exception
+	public void updateUserInformation(User user) throws Exception
 	{
 		try
 		{
-			final String query = "Call sos_storage.update_user_information(?,?,?)";
+			int userID = user.getUser_id();
+			if(userID == -1) {
+				ResultSet backenduser = this.retrieveUserByUsername(user.getUserName());
+				userID = (int) backenduser.getObject("user_id");
+			}
+			
+			final String query = "Call `sos_storage`.`update_user_information`(?,?,?)";
 			
 			CallableStatement procedure = connect.prepareCall(query);
 			
 			procedure.setInt(1, userID);
-			procedure.setString(2, email);
-			procedure.setString(3, privacy);
+			procedure.setString(2, user.getEmail());
+			procedure.setString(3, user.getPrivacy());
 			
 			procedure.execute();
 			
 		}
 		catch(Exception ex)
 		{
+			ex.printStackTrace();
 			throw new Exception("There was an error updating the user's information in the database.\nMore Details: " + ex.getMessage());
 		}
 		
@@ -549,15 +612,25 @@ public class DataStoreFacade {
 		
 		return result;
 	}
+
+	public ResultSet retrieveMembersOfOrganization(int organization_id) throws Exception {
+		try
+		{
+			String query = "CALL `sos_storage`.`get_members_of_organization`(?);";
+			CallableStatement procedure = connect.prepareCall(query);
+			procedure.setInt(1, organization_id);
+			procedure.execute();
+			return procedure.getResultSet();
+			
+		}
+		catch(Exception ex)
+		{
+			throw new Exception("There was an error while trying to retrieve the details for the event.\nMore details: " + ex.getMessage());
+		}
+	}
 	
 	
 	
-	
-	
-	
-	
-	
-	
-	
+
 	
 }

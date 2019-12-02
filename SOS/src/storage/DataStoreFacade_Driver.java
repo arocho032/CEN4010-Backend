@@ -10,25 +10,19 @@ public class DataStoreFacade_Driver {
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		
-		
-		
 		try
 		{
 			DataStoreFacade ds = new DataStoreFacade();
-			
-			JSONObject json = JSONTranslator.resultSetToJSONObject(ds.retrieveEventDetails(6));
-			
-			System.out.println(json);
-			
+			JSONObject json = JSONTranslator.resultSetToJSONObject(ds.retrieveEventDetails(1));
 			
 			ds.terminateConnection();
 			
 		}
 		catch(Exception ex)
 		{
-			System.out.println(ex.getMessage());
+			ex.printStackTrace();
 		}
-		
+
 		
 	}
 

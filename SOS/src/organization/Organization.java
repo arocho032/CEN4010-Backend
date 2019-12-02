@@ -13,11 +13,11 @@ import utils.JSONTranslator;
  */
 public class Organization {
 	
-	private String name;
-	private String description;
-	private String privacy;
-	private String requirements;
-	
+	protected String name;
+	protected String description;
+	protected String privacy;
+	protected String requirements;
+		
 	private JSONObject jsonTranslation;
 	
 	
@@ -25,15 +25,7 @@ public class Organization {
 	 * Constructs a new Organization class. Called through the OrganizationBuilder
 	 * class. Attribute assignations are done through protected scope. 
 	 */
-	protected Organization(String name, String description, String privacy, String requirements) 
-	{
-		
-		this.name = name;
-		this.description = description;
-		this.privacy = privacy;
-		this.requirements = requirements;
-		
-	}
+	protected Organization() {}
 	
 	protected Organization(ResultSet results) throws Exception
 	{
@@ -51,6 +43,41 @@ public class Organization {
 	protected JSONObject getJSONObject()
 	{
 		return this.jsonTranslation;
+	}
+
+	/**
+	 * @return the name
+	 */
+	public String getName() {
+		return name;
+	}
+
+	/**
+	 * @return the description
+	 */
+	public String getDescription() {
+		return description;
+	}
+
+	/**
+	 * @return the privacy
+	 */
+	public String getPrivacy() {
+		return privacy;
+	}
+
+	/**
+	 * @return the requirements
+	 */
+	public String getRequirements() {
+		return requirements;
+	}
+
+	/**
+	 * @return the jsonTranslation
+	 */
+	public JSONObject getJsonTranslation() {
+		return jsonTranslation;
 	}
 
 }

@@ -22,33 +22,12 @@ public class EventListBuilder {
 		list = null;
 	}
 	
-    /**
-     * Requests to get all events in the database that are close to the latitude and longitude given.
-     * @param lat The latitude coordinate of the user requesting the events.
-     * @param lon The longitude coordinate of the user requesting the events.
-     * @return A list of events in JSON.
-     * @throws Exception Throws an exception if the events are not successfully extracted from the database.
-     */
-    public EventList filterEventsByLocation(ResultSet set) throws Exception
-    {
-    	try
-    	{
-    		list = new EventList(set);
-	
-    		return list;
-    	}
-    	catch(Exception ex)
-    	{
-    		throw new Exception("An error occurred while attempting to filter events by location.\nMore Details: " + ex.getMessage());
-    	}
-    }
     
     public EventList getAllAvailableEvents(ResultSet set) throws Exception
     {
     	try
     	{
     		list = new EventList(set);
-    		
     		return list;
     	}
     	catch(Exception ex)

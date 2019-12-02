@@ -1,345 +1,53 @@
 package sosInterface;
 
-import java.util.ArrayList;
+import java.util.Stack;
 
-import org.json.*;
+import org.json.JSONObject;
 
-import com.corundumstudio.socketio.*;
-import com.corundumstudio.socketio.protocol.Packet;
+import com.corundumstudio.socketio.SocketIOClient;
 
-import user.UserManager;
-import organization.OrganizationManager;
-import event.EventManager;
-
-/**
- * A Command class which propagates the front-end requests
- * to their specific target controllers. The requests messages 
- * which are parsed and pre-processed by the SOS Server then 
- * are used to call an appropriate dispatch from the SOS Dispatcher, 
- * which is in charge of directly calling all other controllers. 
- * Instead of being their own classes, each subcommand is defined 
- * in terms of parametrizations of the dispatch function within the 
- * SOS Dispatcher. Internally, SOS Dispatcher also keeps track of 
- * these requests and stores them in the Database
- */
 public class SOSDispatcher {
-	
-	private boolean status;
-	private String message;
-	private String command;
-	private JSONObject jsonMsg;
-	private SocketIOClient client;
-	private int typeOfRequest;
-	
-	
-	public SOSDispatcher(SocketIOClient client, JSONObject json, int typeOfRequest, String command)
-	{
-		try
-		{
-			status = true;
-			message = "";
-			jsonMsg = json;
-			this.command = command;
-			this.typeOfRequest = typeOfRequest;
-			this.client = client;
-		}
-		catch(Exception ex)
-		{
-			status = false;
-			message = "Incorrect format for output URI.";
-		}
-		
+
+	public enum REQUEST_TYPES {
+		CREATE_USER,
+		CREATE_ORG,
+		RETR_ORGS,
+		RETR_ORG,
+		LOGIN,
+		LOAD_USER, 
+		RETR_MEMBER_FOR_ORG, 
+		RETR_EVENT_FOR_ORG, 
+		CREATE_EVENT, 
+		RETR_EVENTS_FOR_ORG, 
+		RETR_ALL_EVENTS, 
+		JOIN_ORG, 
+		SET_ROLE, 
+		EVENT_CANCEL, 
+		RETR_ORGS_FOR_USER, 
+		RETR_EVENTS_BY_LOCATION, 
+		RETR_EVENT, 
+		ATTEND_EVENT,
+		UPDATE_USER
+		;		
 	}
 	
+	static private SOSDispatcher _instance = null;
+	private Stack<SOSCommand> executionHistory;
 	
-	public boolean getStatus()
-	{
-		return this.status;
+	protected SOSDispatcher() {
+		this.executionHistory = new Stack<>();
 	}
 	
-	public String getMessage()
-	{
-		return this.message;
+	static public SOSDispatcher getInstance() {
+		if(_instance == null)
+			_instance = new SOSDispatcher();
+		return _instance;
 	}
 	
-	/**
-	* The method for dispatching events.
-	*/
-	public void Dispatch() 
-	{
-		status = true;
-		switch(typeOfRequest)
-		{
-			case 1:
-				dispatchUserEvents(this.command);
-				break;
-				
-			case 2:
-				dispatchEventEvents(this.command);
-				break;
-				
-			default:
-				dispatchOrganizationEvents(this.command);
-				break;
-		}
+	public void dispatch(REQUEST_TYPES request, SocketIOClient client, JSONObject payload) {
+		SOSCommand command = SOSCommand.createCommand(request, client, payload);
+		if(command.execute())
+			this.executionHistory.push(command);
 	}
-	
-	private void dispatchUserEvents(String eventName)
-	{
-		try
-		{
-			switch(eventName)
-			{
-				
-				case "create":
-					try
-					{
-						UserManager manager = UserManager.instance();
-				
-						manager.CreateNewProfile(jsonMsg);		
-					}
-					catch(Exception ex)
-					{
-							throw new Exception("An error occurred while dispatching user creation.\nMore Details: " + ex.getMessage());
-					}
-					break;
-					
-				case "load":
-					try
-					{
-						UserManager manager = UserManager.instance();
-				
-						
-						
-						int userID = jsonMsg.getInt("userID");
-						
-						client.sendEvent("userLoadDetails", manager.LoadUser(userID));
-					}
-					catch(Exception ex)
-					{
-							throw new Exception("An error occurred while dispatching user load.\nMore Details: " + ex.getMessage());
-					}
-					break;
-					
-				case "update":
-					try
-					{
-						UserManager manager = UserManager.instance();
-						
-						int userID = jsonMsg.getInt("userID");
-						
-						manager.ChangeUserDetails(userID, jsonMsg);
-					}
-					catch(Exception ex)
-					{
-							throw new Exception("An error occurred while dispatching user creation.\nMore Details: " + ex.getMessage());
-					}
-					break;
-					
-			}
-		}
-		catch(Exception ex)
-		{
-			status = false;
-			message = ex.getMessage();
-			client.sendEvent("failure", ex.getMessage());
-			System.out.println(ex.getMessage());
-		}
-	}
-	
-	private void dispatchEventEvents(String eventName)
-	{
-		try
-		{
-			
-			EventManager manager = EventManager.instance();
-			
-			switch(eventName)
-			{
-				
-				case "create":
-					try
-					{
-						manager.createEvent(jsonMsg);
-						
-					}
-					catch(Exception ex)
-					{
-							throw new Exception("An error occurred while dispatching event creation.\nMore Details: " + ex.getMessage());
-					}
-					break;
-					
-				case "loadOne":
-					try
-					{	
-						int eventID = jsonMsg.getInt("eventID");
-						
-						client.sendEvent("eventLoadDetails", manager.loadEventDetails(eventID));
-					}
-					catch(Exception ex)
-					{
-							throw new Exception("An error occurred while dispatching event single load.\nMore Details: " + ex.getMessage());
-					}
-					break;
-					
-				case "loadAll":
-					try
-					{
-						client.sendEvent("eventLoadAllEvents", manager.retrieveListOfEvents());
-					}
-					catch(Exception ex)
-					{
-							throw new Exception("An error occurred while dispatching loading of all events.\nMore Details: " + ex.getMessage());
-					}
-					break;
-					
-				case "loadByLocation":
-					try
-					{
-						double latitude = jsonMsg.getDouble("latitude");
-						
-						double longitude = jsonMsg.getDouble("longitude");
-						
-						client.sendEvent("eventLoadByLocation", manager.retrieveListOfEventsByLocation(latitude, longitude));
-						
-					}
-					catch(Exception ex)
-					{
-							throw new Exception("An error occurred while dispatching loading all events by location.\nMore Details: " + ex.getMessage());
-					}
-				case "cancel":
-					try
-					{	
-						int eventID = jsonMsg.getInt("eventID");
-						
-						manager.cancelEvent(eventID);
-					}
-					catch(Exception ex)
-					{
-							throw new Exception("An error occurred while dispatching event cancellation.\nMore Details: " + ex.getMessage());
-					}
-					break;
-				case "attend":
-					try
-					{	
-						int eventID = jsonMsg.getJSONObject("event").getInt("eventID");
-						
-						int userID = jsonMsg.getJSONObject("user").getInt("userID");
-						
-						manager.markAttendance(userID, eventID);
-					}
-					catch(Exception ex)
-					{
-							throw new Exception("An error occurred while dispatching event attendance.\nMore Details: " + ex.getMessage());
-					}
-					break;
-			}
-		}
-		catch(Exception ex)
-		{
-			status = false;
-			message = ex.getMessage();
-			
-			client.sendEvent("failure", ex.getMessage());
-			
-		}
-	}
-	
-	private void dispatchOrganizationEvents(String eventName)
-	{
-		try
-		{
-			
-			OrganizationManager manager = OrganizationManager.instance();
-			
-			switch(eventName)
-			{
-				
-				case "create":
-					try
-					{
-						manager.createOrganization(jsonMsg);
-					}
-					catch(Exception ex)
-					{
-							throw new Exception("An error occurred while dispatching organization creation.\nMore Details: " + ex.getMessage());
-					}
-					break;
-					
-				case "loadOne":
-					try
-					{	
-						int organizationID = jsonMsg.getInt("organizationID");
-						
-						client.sendEvent("organizationLoadOne", manager.loadOrganizationDetails(organizationID));
-					}
-					catch(Exception ex)
-					{
-							throw new Exception("An error occurred while dispatching organization single load.\nMore Details: " + ex.getMessage());
-					}
-					break;
-					
-				case "loadAll":
-					try
-					{
-						client.sendEvent("organizationLoadAll", manager.getAllOrganizations());
-					}
-					catch(Exception ex)
-					{
-							throw new Exception("An error occurred while dispatching loading of all organizations.\nMore Details: " + ex.getMessage());
-					}
-					break;
-					
-				case "loadByUser":
-					try
-					{
-						client.sendEvent("organizationLoadByUser", manager.getAllOrganizations(jsonMsg.getJSONObject("user").getInt("userID")));
-					}
-					catch(Exception ex)
-					{
-							throw new Exception("An error occurred while dispatching loading all organizations by user.\nMore Details: " + ex.getMessage());
-					}
-				case "join":
-					try
-					{	
-						int organizationID = jsonMsg.getJSONObject("organization").getInt("organizationID");
-						
-						manager.joinOrganization(jsonMsg.getJSONObject("user").getInt("userID"), organizationID);
-					}
-					catch(Exception ex)
-					{
-							throw new Exception("An error occurred while dispatching the request to join an organization.\nMore Details: " + ex.getMessage());
-					}
-					break;
-				case "grantRole":
-					try
-					{	
-						int organizationID = jsonMsg.getJSONObject("organization").getInt("organizationID");
-						
-						String roleName = jsonMsg.getJSONObject("role").getString("roleName");
-						
-						int userID = jsonMsg.getJSONObject("user").getInt("userID");
-						
-						JSONArray privs = jsonMsg.getJSONArray("privIDs");
-						
-						manager.grantRole(userID, organizationID, roleName, privs);
-					}
-					catch(Exception ex)
-					{
-							throw new Exception("An error occurred while dispatching event single load.\nMore Details: " + ex.getMessage());
-					}
-					break;
-			}
-		}
-		catch(Exception ex)
-		{
-			status = false;
-			message = ex.getMessage();
-			
-			client.sendEvent("Failure", ex.getMessage());
-		}
-	}
-	
-	
-	
+
 }

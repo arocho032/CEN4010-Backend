@@ -1,5 +1,6 @@
 package user;
 
+import java.sql.ResultSet;
 import java.util.Map;
 import storage.DataStoreFacade;
 import utils.JSONTranslator;
@@ -7,6 +8,8 @@ import utils.JSONTranslator;
 import org.json.*;
 
 import event.EventBuilder;
+import organization.Organization;
+import security.PasswordManager;
 
 /**
  * A Singleton class which managers all the User functions. This class
@@ -21,11 +24,24 @@ import event.EventBuilder;
  */
 public class UserManager {
 
+	
+	DataStoreFacade ds;
+	UserLoader ul;
+	UserUpdater up;
+	
 	/**
  	* A protected or private constructor ensures
  	* that no other class has access to the Singleton.
 	*/
-	protected UserManager() {}
+	protected UserManager() {
+		try {
+			this.ds = new DataStoreFacade();
+			this.ul = new UserLoader();
+			this.up = new UserUpdater();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 	
 	/**
 	 * A handle to the unique UserMangaer instance
@@ -47,25 +63,89 @@ public class UserManager {
 	/**
 	 * Creates a User from a database-format entry. Done by
 	 * calling the UserLoader class.
-	 * @param userID The ID of the user that we want 
+	 * @param payload The ID of the user that we want 
 	 * @return	a User object with the given attributes.
 	 */
-	public JSONObject LoadUser(int userID) throws Exception
+	public JSONObject LoadUser(JSONObject payload)
 	{
-		try
-		{
-			DataStoreFacade ds = new DataStoreFacade();
-			
-			UserLoader loader = new UserLoader();
-			
-			return loader.LoadUser(ds.retrieveUserDetails(userID)).getJSON();
-			
+		
+		JSONObject ret = new JSONObject();
+		try {
+			String username = payload.getJSONObject("user").getString("username");
+			ResultSet user = ds.retrieveUserByUsername(username);
+			if(user == null) {
+				ret.put("error", "true");
+				ret.put("type", "usernotfoundError");
+			} else {
+				if(user.next()) {
+					User loadedUser = ul.LoadUser(user);
+					ret.put("user", loadedUser.getJSON());					
+				}
+			}
+		} catch (JSONException e) {
+			try {
+				ret.put("error", "true");
+				ret.put("type", "usernameValueError");
+			} catch (JSONException e1) {
+				e1.printStackTrace();
+			}
+			e.printStackTrace();
+		} catch (Exception e) {
+			try {
+				ret.put("error", "true");
+				ret.put("type", "generalException");
+				ret.put("payload", "An error occurred while attempting to find all events for the user.\nMore Details: " + e.getMessage());
+			} catch (JSONException e1) {
+				e1.printStackTrace();
+			}
+			e.printStackTrace();
 		}
-		catch(Exception ex)
-		{
-			throw new Exception("An error occurred while attempting to retrieve user details.\nMore details: " + ex.getMessage());
-		}
+		return ret;
+	
 	}
+	
+	public JSONObject login(JSONObject payload) {
+		JSONObject ret = new JSONObject();
+		try {
+			String username = payload.getJSONObject("user").getString("username");
+			String password = payload.getJSONObject("user").getString("password");
+			ResultSet user = this.ds.retrieveUserByUsername(username);
+			if(user == null) {
+				ret.put("error", "true");
+				ret.put("type", "usernotfoundError");
+			} else {
+				if(user.next()) {					
+					User loadedUser = ul.LoadUser(user);
+					if (!PasswordManager.ValidateLogInCredentials(loadedUser, password)) {
+						ret.put("error", "true");
+						ret.put("type", "invalidcredentials");
+					} else {
+						ret.put("type", "doLogin");
+						ret.put("user", loadedUser.getJSON());
+					}
+				}
+			}
+		} catch (JSONException e) {
+			try {
+				ret.put("error", "true");
+				ret.put("type", "loginValueError");
+			} catch (JSONException e1) {
+				e1.printStackTrace();
+			}
+			e.printStackTrace();
+		} catch (Exception e) {
+			try {
+				ret.put("error", "true");
+				ret.put("type", "generalException");
+				ret.put("payload", "An error occurred while attempting to find all events for the user.\nMore Details: " + e.getMessage());
+			} catch (JSONException e1) {
+				e1.printStackTrace();
+			}
+			e.printStackTrace();
+		}
+		return ret;
+	}
+	
 	
 	/**
 	 * Changes the details of the user in the SOS system.
@@ -73,36 +153,46 @@ public class UserManager {
 	 * @param json2 The JSON string with the user information and their changes.
 	 * @throws Exception Throws an exception if an error occurs while attempting to change user information.
 	 */
-	public void ChangeUserDetails(int userID, JSONObject json2) throws Exception
+	public JSONObject ChangeUserDetails(JSONObject json)
 	{
-		try
-		{
-			JSONObject json = json2;
-			 
-			 NewUserBuilder builder = new NewUserBuilder();
-			 
-			 
-			 String name = json.getJSONObject("user").getString("userName");
-			 String userName = json.getJSONObject("user").getString("userUserName");
-			 String password = json.getJSONObject("user").getString("userPassword");
-			 String privacy = json.getJSONObject("user").getString("userPrivacy");
-			 String email = json.getJSONObject("user").getString("userEmail");
-			 
-			 //TO DO: PASSWORD ENCRYPTION
-			 
-			 if ( !builder.attemptToCreateNewUser(name, userName, password, privacy, email) )
-			 {
-				 throw new Exception("There was an error assigning user fields.");
-			 }
-			 
-			 DataStoreFacade ds = new DataStoreFacade();
-			 
-			 ds.updateUserInformation(userID, email, privacy);
+		
+		JSONObject ret = new JSONObject();
+		try {						
+			ResultSet user = this.ds.retrieveUserDetails(json.getInt("user_id"));
+			if(user == null) {
+				ret.put("error", "true");
+				ret.put("type", "usernotfoundError");
+			} else {
+				if(user.next()) {
+					User loadedUser = ul.LoadUser(user);
+					if(!PasswordManager.instance().ValidateLogInCredentials(loadedUser, json.getString("password")))
+						return null;
+					
+					up.ChangeUser(loadedUser, up.makeUpdatesMap(json.getJSONObject("update"))); 
+					ds.updateUserInformation(loadedUser);
+					return ret;
+				}
+			}
+		} catch (JSONException e) {
+			try {
+				ret.put("error", "true");
+				ret.put("type", "usernameValueError");
+			} catch (JSONException e1) {
+				e1.printStackTrace();
+			}
+			e.printStackTrace();
+		} catch (Exception e) {
+			try {
+				ret.put("error", "true");
+				ret.put("type", "generalException");
+				ret.put("payload", "There was an issue in updating the user's information.\nMore details: " + e.getMessage());
+			} catch (JSONException e1) {
+				e1.printStackTrace();
+			}
+			e.printStackTrace();
 		}
-		catch(Exception ex)
-		{
-			throw new Exception("There was an issue in updating the user's information.\nMore details: " + ex.getMessage());
-		}
+		return ret;		
+		
 	};
 	
 	/**
@@ -110,37 +200,105 @@ public class UserManager {
 	 * @param input A JSON string representing the user's information.
 	 * @throws Exception Throws an exception if there was an issue creating the user's profile.
 	 */
-	public void CreateNewProfile(JSONObject input) throws Exception
+	public JSONObject CreateNewProfile(JSONObject json)
 	{
-		try
-		{
-			JSONObject json = input;
-			 
-			 NewUserBuilder builder = new NewUserBuilder();
-			 
-			 String name = json.getJSONObject("user").getString("userName");
-			 String userName = json.getJSONObject("user").getString("userUserName");
-			 String password = json.getJSONObject("user").getString("userPassword");
-			 String email = json.getJSONObject("user").getString("userEmail");
+		JSONObject ret = new JSONObject();
+		NewUserBuilder builder = new NewUserBuilder();
+		
+		try {
+			try {
+				builder.setUsername(json.getJSONObject("user").getString("userUserName"));
+			} catch (IllegalArgumentException e) {
+				ret.put("error", "true");
+				ret.put("type", "nonuniqueUsername");
+				return ret;
+			}
+			
+			try {
+				builder.setPassword(json.getJSONObject("user").getString("userPassword"));
+			} catch (IllegalArgumentException e) {
+				e.printStackTrace();
+				ret.put("error", "true");
+				ret.put("type", "invalidPassword");
+				return ret;
+			}
 
-			 //TO DO: PASSWORD ENCRYPTION
-			 
-			 if ( !builder.attemptToCreateNewUser(name, userName, password, "PUBLIC", email) )
-			 {
-				 throw new Exception("There was an error assigning user fields.");
-			 }
-			 
-			 DataStoreFacade ds = new DataStoreFacade();
-			 
-			 ds.registerNewUser(password, email, name, userName);
-			 
-		}
-		catch(Exception ex)
-		{
-			throw new Exception("There was an error creating a new User profile.\nMore details: " + ex.getMessage());
-		}
+			try {
+				builder.setEmail(json.getJSONObject("user").getString("userEmail"));
+			} catch (IllegalArgumentException e) {
+				ret.put("error", "true");
+				ret.put("type", "invalidEmail");
+				return ret;
+			}
+			
+			User user = builder
+			.setName(json.getJSONObject("user").getString("userName"))
+			.setPrivacy("PUBLIC")
+			.build();
+			
+			this.ds.registerNewUser(user);
+			ret.put("type", "validRegistration");
+			ret.put("user", user.toString());
 		
-		
+		} catch (JSONException e) {
+			e.printStackTrace();
+		} catch (IllegalArgumentException e) {
+			e.printStackTrace();
+		}
+			 
+		return ret;
 	}
+	
+	
+	public JSONObject getMembersOfOrganization(JSONObject payload) {
+		JSONObject ret = new JSONObject();
+		try {
+			
+			ResultSet set = null;
+			if(payload.getJSONObject("organization").has("organization_id")) {
+			
+				set = this.ds.retrieveMembersOfOrganization(payload.getJSONObject("organization").getInt("organization_id"));
+				int skip = payload.getJSONObject("organization").getInt("startIndex");
+				int count = 20;
+				
+				JSONArray members = new JSONArray();
+				while(set.next()) {
+					User loadedUser = ul.LoadUser(set);
+					if(loadedUser != null) {
+						members.put(loadedUser.getJSON());
+					} else break;
+					
+				}
+				
+				set.close();
+				ret.put("data", members.toString());
+				
+			} else {
+				ret.put("error", "true");
+				ret.put("type", "noSearchParameter");
+				return ret;
+			}
+			
+		} catch (JSONException e) {
+			try {
+				ret.put("error", "true");
+				ret.put("type", "orgidValueError");
+			} catch (JSONException e1) {
+				e1.printStackTrace();
+			}
+			e.printStackTrace();
+		} catch (Exception e) {
+			try {
+				ret.put("error", "true");
+				ret.put("type", "generalException");
+				ret.put("payload", "An error occurred while attempting to load the details for the organization.\nMore information: " + e.getMessage());
+			} catch (JSONException e1) {
+				e1.printStackTrace();
+			}
+			e.printStackTrace();
+		}
+		return ret;
+	}
+	
 	
 }

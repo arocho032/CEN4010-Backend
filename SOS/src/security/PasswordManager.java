@@ -1,6 +1,7 @@
 package security;
 
 import user.User;
+
 import java.security.*;
 
 /**
@@ -51,26 +52,28 @@ public class PasswordManager {
 		 }
 		 return _instance;
 	 }
-		 
-	/**
-	* @param password as a String to be validated
-	* @return is true if password successfully validates
-	*/
-    static public boolean ValidatePassword(User user, String password) {
-    	return user.equals(password);
-    }
-	
+		
     /**
 	* @param password is a String to be validated
 	* @return will return an encrypted version of the password as a String
 	*/
-  	static public String EncryptPassword(String password) {return null;}
-	
+  	static public String HashPassword(String username, String password) {
+  		return password;
+  	}
+ 
+	/**
+	* @param password as a String to be validated
+	* @return is true if password successfully validates
+	*/
+	static public boolean ValidatePassword(String password) {return true;}
+  	
   	/**
 	* @param username is the user name for log in
 	* @param pwd is the user's password for log in
 	* @return is the validation of the login credentials
 	*/
-  	static public boolean ValidateLogInCredentials(String username, String pwd) {return false;}
+  	static public boolean ValidateLogInCredentials(User user, String pwd) {
+  		return user.getPassword().equals(HashPassword(user.getUserName(), pwd));
+  	}
 
 }

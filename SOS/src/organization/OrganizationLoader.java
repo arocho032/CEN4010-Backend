@@ -22,8 +22,8 @@ public class OrganizationLoader {
 	{
 		try
 		{
-			organization = new Organization(set);
-			
+			if(set.next())
+				organization = new Organization(set);
 			return organization;
 		}
 		catch(Exception ex)

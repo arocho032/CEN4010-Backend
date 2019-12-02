@@ -51,8 +51,8 @@ public class JSONTranslator {
 		
 		try
 		{
-			while(set.next())
-			{
+//			while(set.next())
+//			{
 				int num_rows = set.getMetaData().getColumnCount();	
 			
 				for(int setIndex = 1; setIndex < num_rows + 1; setIndex++)
@@ -62,12 +62,13 @@ public class JSONTranslator {
 						set.getObject(setIndex));
 				
 				}
-				
-			}
+//				
+//			}
 			
 		}
 		catch(Exception ex)
 		{
+			ex.printStackTrace();
 			throw new Exception("There was an error converting results to JSON.");
 		}
 		
