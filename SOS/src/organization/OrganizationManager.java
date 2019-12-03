@@ -8,6 +8,7 @@ import java.sql.ResultSet;
 
 import org.json.*;
 
+// TODO: Auto-generated Javadoc
 /**
  * A Singleton which manages all the Organization functions. This 
  * class receives dispatched actions from the SOS Dispatcher and 
@@ -22,7 +23,10 @@ import org.json.*;
  */
 public class OrganizationManager {
 
+	/** The ds. */
 	private DataStoreFacade ds;
+	
+	/** The ld. */
 	private OrganizationLoader ld;
 
 	/**
@@ -45,6 +49,8 @@ public class OrganizationManager {
 	static private OrganizationManager _instance = null;
 
 	/**
+	 * Instance.
+	 *
 	 * @return The unique instance of this
 	 * class.
 	 */
@@ -57,14 +63,9 @@ public class OrganizationManager {
 
 	/**
 	 * Grants a number of privileges to a User for a given Organization.
-	 * @param userId
-	 * 	the unique id of the User 
-	 * @param orgId
-	 * 	the unique id of the Organization
-	 * @param roleName
-	 * 	the name of the assigned Role.
-	 * @param privs
-	 * 	the unique ids of the Privileges given to the User.
+	 *
+	 * @param payload the payload
+	 * @return the JSON object
 	 */
 	public JSONObject grantRole(JSONObject payload)
 	{
@@ -107,8 +108,9 @@ public class OrganizationManager {
 
 	/**
 	 * Creates an organization in the SOS System.
-	 * @param json2 A JSON string that has information about the organization we want to create.
-	 * @throws Exception Throws an exception if their is a failure to create an organization.
+	 *
+	 * @param json the json
+	 * @return the JSON object
 	 */
 	public JSONObject createOrganization(JSONObject json)
 	{
@@ -161,8 +163,9 @@ public class OrganizationManager {
 
 	/**
 	 * Loads details for the requested organization.
-	 * @param organizationID The ID of the organization which the SOS system is asking for.
-	 * @throws Exception Throws an exception if the organization is not found within the database.
+	 *
+	 * @param payload the payload
+	 * @return the JSON object
 	 */
 	public JSONObject loadOrganizationDetails(JSONObject payload)
 	{
@@ -203,8 +206,8 @@ public class OrganizationManager {
 
 	/**
 	 * Gets all the public organizations in the SOS.
+	 *
 	 * @return A JSONArray with all the public organizations stored in the SOS.
-	 * @throws Exception Throws an exception if their was an error retrieving the SOS public organizations.
 	 */
 	public JSONObject getAllOrganizations() 
 	{ 
@@ -227,9 +230,9 @@ public class OrganizationManager {
 
 	/**
 	 * Gets all the organizations which a user currently belongs to.
-	 * @param userID The user that we want to retrieve the organizations for.
+	 *
+	 * @param payload the payload
 	 * @return A JSONObject with all the organizations the user is a part of.
-	 * @throws Exception Throws an exception if there was an error retrieving the organizations for the user.
 	 */
 	public JSONObject getAllOrganizations(JSONObject payload)
 	{
@@ -252,9 +255,9 @@ public class OrganizationManager {
 
 	/**
 	 * Allows the user to join an organization that is part of SOS.
-	 * @param userID The ID of the user that wants to join the organization.
-	 * @param organizationID The ID of the organization that the user wants to join.
-	 * @throws Exception Throws an exception if there was an error preventing the user from joining said organization.
+	 *
+	 * @param payload the payload
+	 * @return the JSON object
 	 */
 	public JSONObject joinOrganization(JSONObject payload)
 	{
@@ -284,6 +287,5 @@ public class OrganizationManager {
 		}
 		return ret;
 	}
-
 
 }

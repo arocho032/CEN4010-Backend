@@ -11,10 +11,28 @@ import com.corundumstudio.socketio.listener.ConnectListener;
 
 import security.TransferManager;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The listener interface for receiving SOSConnect events.
+ * The class that is interested in processing a SOSConnect
+ * event implements this interface, and the object created
+ * with that class is registered with a component using the
+ * component's <code>addSOSConnectListener<code> method. When
+ * the SOSConnect event occurs, that object's appropriate
+ * method is invoked.
+ *
+ * @see SOSConnectEvent
+ */
 public class SOSConnectListener implements ConnectListener {
 	
+	/** The lg. */
 	Logger lg = LoggerFactory.getLogger(SOSConnectListener.class);
 	
+	/**
+	 * On connect.
+	 *
+	 * @param client the client
+	 */
 	@Override
 	public void onConnect(SocketIOClient client) {
 		

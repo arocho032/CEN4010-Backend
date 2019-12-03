@@ -15,8 +15,9 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import utils.EnumerationsAndConstant;
+import utils.Constants;
 
+// TODO: Auto-generated Javadoc
 /** SOSServer communicates with the front-end for creation of events.
 * Also it is held responsible for managing user sessions and keeping
 * track of them, as well as dispatching messages through the system.
@@ -25,18 +26,26 @@ import utils.EnumerationsAndConstant;
 
 public class SOSServer {
 	
+	/** The config. */
 	private Configuration config;
+	
+	/** The server. */
 	private SocketIOServer server;
 	
+	/** The lg. */
 	private Logger lg;
 	
 	/**
- 	* The constructor could be made private
- 	* to prevent others from instantiating this
- 	* class. But this would also make it
- 	* impossible to create instances of
- 	* SOSServer subclasses.
-	*/
+	 * The constructor could be made private
+	 * to prevent others from instantiating this
+	 * class. But this would also make it
+	 * impossible to create instances of
+	 * SOSServer subclasses.
+	 *
+	 * @param hostName the host name
+	 * @param portNumber the port number
+	 * @throws Exception the exception
+	 */
 	private SOSServer(String hostName, int portNumber) throws Exception
 	{ 
 		try
@@ -64,15 +73,18 @@ public class SOSServer {
  	static private SOSServer _instance = null;
  	
 	/**
+	 * Instance.
+	 *
 	 * @return The unique instance of this
 	 * class.
+	 * @throws Exception the exception
 	 */
-	 static public SOSServer instance(String hostName, int portNumber) throws Exception
+	 static public SOSServer instance() throws Exception
 	 {
 		 try
 		 {
 			 if (null == _instance) {
-				 _instance = new SOSServer(hostName, portNumber);
+				 _instance = new SOSServer("0.0.0.0", Constants.SERVER_PORT);
 			 }
 			 return _instance;
 		 }
@@ -83,6 +95,10 @@ public class SOSServer {
 	 }
 	 
     
+	/**
+	 * Starts the server and sets it to listen for events from a client
+	 * socket.io front-end. 
+	 */
 	public void ListenForEvents() 
 	{
 
@@ -254,20 +270,4 @@ public class SOSServer {
 		
 	}
 	
-	/**
-	 * Dispatch an action with the parameters defined in the payload.
-	 * @param action
-	 * 		the action to be dispatched.
-	 * @param payload
-	 * 		the payload of the action.
-	 */
-	static public void send(String action, Object payload) {}
-	
-	/**
-	* This method parses a message coming from the front-end which supposed
-	* to be in JSON format.
-	* @param jsonString is a String coming from the front-end including the JSON
-	* @return is the parsed message
-	*/
-	static public String ParseMessage(String jsonString) {return null;}
 }

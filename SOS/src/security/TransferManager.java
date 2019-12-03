@@ -23,6 +23,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Base64;
+import java.util.Enumeration;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -36,12 +37,16 @@ import org.json.JSONObject;
 
 import io.netty.handler.codec.base64.Base64Encoder;
 
+// TODO: Auto-generated Javadoc
 /**
  * A Singleton that handles secure data exchange between the front end and the back end. 
  */
 public class TransferManager {
 
+	/** The cipher. */
 	private Cipher cipher;
+	
+	/** The keystore. */
 	private KeyStore keystore;
 	
 	/**
@@ -71,6 +76,8 @@ public class TransferManager {
  	static private TransferManager _instance = null;
  	
 	/**
+	 * Instance.
+	 *
 	 * @return The unique instance of this
 	 * class.
 	 */
@@ -84,13 +91,13 @@ public class TransferManager {
 	/**
 	 * Produces an Base64 version of the encrypted ciphertext for the 
 	 * input given in msg. 
-	 * @param msg
-	 * 		the input to be encrypted and encoded.
-	 * @return
-	 * 		the JSONObject containing:
+	 *
+	 * @param msg 		the input to be encrypted and encoded.
+	 * @param alias the alias
+	 * @return 		the JSONObject containing:
 	 * 			'key'	the encrypted key parameter, decryptable with the target's private key.
 	 * 			'iv'	the encrypted iv parameter, decryptable with the target's private key.
-	 * 			'text'	the encrypted text, decrypateble with a AES/CBC/PKCS7Padding using the given key and iv. 
+	 * 			'text'	the encrypted text, decrypateble with a AES/CBC/PKCS7Padding using the given key and iv.
 	 */
 	public JSONObject encryptMessage(String msg, String alias) {
 		JSONObject retJSON = null;
@@ -141,6 +148,16 @@ public class TransferManager {
 		return retJSON;
 	}
 	
+	/**
+	 * Decrypts the message in the given JSONObject.
+	 * @param msg
+	 * 		a json object which must have:
+	 *	 		key		a symmetric key encrypted with this TransferManager's public certificate.
+	 * 			iv		an iv value encrypted with this TransferManager's public certificate.
+	 * 			text	a cyphertext encrypted using AES/CBC/PKCS5Padding and the given key and iv. 
+	 * @return
+	 * 		the plaintext form of text.
+	 */
 	public String decryptMessage(JSONObject msg) {
 		String ret = null;
 		try {
@@ -178,6 +195,11 @@ public class TransferManager {
 		return ret;
 	}
 	
+	/**
+	 * Gets the private key of this object.
+	 * @return
+	 * 		the private key.
+	 */
 	private PrivateKey getPrivateKey() {
 		PrivateKey ret = null;
 		try {
@@ -190,6 +212,11 @@ public class TransferManager {
 	    return ret;
 	}
 	
+	/**
+	 * Gets the public key of this object.
+	 * @return
+	 * 		the public key.
+	 */
 	private PublicKey getPublicKey() {
 		PublicKey ret = null;
 		try {
@@ -201,6 +228,11 @@ public class TransferManager {
 		return ret;
 	}
 		 
+	/**
+	 * Gets the sharable (PEM) string version of this object's certificate. 
+	 * @return
+	 * 		a String containing the PEM version of the certificate. 
+	 */
 	public String getSharableCertificate() {
 		String ret = null;
 		try {
@@ -217,7 +249,14 @@ public class TransferManager {
 		}
 		return ret;
 	}
-	
+
+	/**
+	 * Adds an external certificate to the KeyStore with the given alias. 
+	 * @param certS
+	 * 		the certificate, usually in a PEM format.
+	 * @param alias
+	 * 		the alias for the certificate.
+	 */
 	public void setCertificateEntry(String certS, String alias) {
 		try {
 			CertificateFactory fact = CertificateFactory.getInstance("X.509");
@@ -228,13 +267,6 @@ public class TransferManager {
 		} catch (KeyStoreException e) {
 			e.printStackTrace();
 		}
-	}
-
-	public static void main(String[] args) throws KeyStoreException {
-		TransferManager tm = TransferManager.instance();
-		String alias = "mykey";
-		String plain = "7.2.	Subsystem Tests – test at least one subsystem using test cases derived from the systems test cases.  This will involve the creation of a test driver i.e. a main in the package containing the subsystem and one or more stubs.  Use a similar format to that in section 7.1 to document the tests performed.  Include the code for the test driver in appendix E. You must use a unit testing tool and a code coverage tool.";
-		JSONObject tc = tm.encryptMessage(plain, alias);		
 	}
 	
 }

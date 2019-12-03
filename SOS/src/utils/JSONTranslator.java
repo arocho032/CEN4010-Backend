@@ -6,9 +6,20 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class JSONTranslator.
+ */
 public class JSONTranslator {
 
 	
+	/**
+	 * Result set to JSON array.
+	 *
+	 * @param set the set
+	 * @return the JSON array
+	 * @throws Exception the exception
+	 */
 	public static JSONArray resultSetToJSONArray(ResultSet set) throws Exception
 	{
 		
@@ -44,6 +55,13 @@ public class JSONTranslator {
 		
 	}
 	
+	/**
+	 * Result set to JSON object.
+	 *
+	 * @param set the set
+	 * @return the JSON object
+	 * @throws Exception the exception
+	 */
 	public static JSONObject resultSetToJSONObject(ResultSet set) throws Exception
 	{
 		

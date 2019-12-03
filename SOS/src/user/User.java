@@ -6,6 +6,7 @@ import utils.JSONTranslator;
 
 import java.sql.*;
 
+// TODO: Auto-generated Javadoc
 /**
  * A run-time representation of a User persistent object. This class 
  * is used as an intermediary for creation, retrieval, and modification 
@@ -14,18 +15,33 @@ import java.sql.*;
  */
 public class User {
 	
+	/** The user id. */
 	protected int user_id = -1;
-	protected String name;
-	protected String userName;
-	protected String password;
-	protected String privacy = "PUBLIC";
-	protected String email = "test@gmail.com";
 	
-	private JSONObject jsonTranslation;
+	/** The name. */
+	protected String name = null;
+	
+	/** The user name. */
+	protected String userName = null;
+	
+	/** The password. */
+	protected String password = null;
+	
+	/** The privacy. */
+	protected String privacy = null;
+	
+	/** The email. */
+	protected String email = null;
+	
+	/** The json translation. */
+	private JSONObject jsonTranslation = null;
 
 	/**
 	 *  Constructs a new User class. Called through the UserBuilder class. 
-	 *  Attribute assignations are done through protected scope. 
+	 *  Attribute assignations are done through protected scope.
+	 *
+	 * @param set the set
+	 * @throws Exception the exception
 	 */
 	protected User(ResultSet set) throws Exception
 	{
@@ -47,13 +63,23 @@ public class User {
 		
 	}
 		
-	public User() {}
+	/**
+	 * Creates an empty user object, for the Builder.
+	 */
+	protected User() {}
 
+	/**
+	 * Returns the JSON form of this User.
+	 *
+	 * @return the json
+	 */
 	public JSONObject getJSON() {
 		return this.jsonTranslation;
 	}
 	
 	/**
+	 * Gets the name.
+	 *
 	 * @return the name
 	 */
 	public String getName() {
@@ -61,6 +87,8 @@ public class User {
 	}
 
 	/**
+	 * Gets the user name.
+	 *
 	 * @return the userName
 	 */
 	public String getUserName() {
@@ -68,6 +96,8 @@ public class User {
 	}
 
 	/**
+	 * Gets the password.
+	 *
 	 * @return the password
 	 */
 	public String getPassword() {
@@ -75,6 +105,8 @@ public class User {
 	}
 
 	/**
+	 * Gets the privacy.
+	 *
 	 * @return the privacy
 	 */
 	public String getPrivacy() {
@@ -82,6 +114,8 @@ public class User {
 	}
 
 	/**
+	 * Gets the email.
+	 *
 	 * @return the email
 	 */
 	public String getEmail() {
@@ -89,6 +123,8 @@ public class User {
 	}
 
 	/**
+	 * Gets the user id.
+	 *
 	 * @return the user_id
 	 */
 	public int getUser_id() {

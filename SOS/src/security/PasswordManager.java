@@ -4,18 +4,13 @@ import user.User;
 
 import java.security.*;
 
+// TODO: Auto-generated Javadoc
 /**
  * A Singleton which deals with password control actions. It implements most of the back-end
  * side of the password policy for SOS, including resolving passwords and checking the input
  * password against the database.
  */
 public class PasswordManager {
-
-	private KeyPairGenerator kgen;
-	private PrivateKey serverPiK;
-	private PublicKey serverPuK;
-	
-	private static int keyLenght = 32;
 	
 	/**
  	* The constructor could be made private
@@ -24,17 +19,7 @@ public class PasswordManager {
  	* impossible to create instances of
  	* PasswordManager subclasses.
 	*/
-	protected PasswordManager() {
-		try {
-			this.kgen = KeyPairGenerator.getInstance("RSA");
-			this.kgen.initialize(keyLenght);
-			KeyPair p = this.kgen.generateKeyPair();
-			this.serverPiK = p.getPrivate();
-			this.serverPuK = p.getPublic();
-		} catch (NoSuchAlgorithmException e) {
-			e.printStackTrace();
-		}
-	}
+	protected PasswordManager() {}
 
  	/**
   	 * A handle to the unique PasswordManager
@@ -43,6 +28,8 @@ public class PasswordManager {
  	static private PasswordManager _instance = null;
  	
 	/**
+	 * Instance.
+	 *
 	 * @return The unique instance of this
 	 * class.
 	 */
@@ -54,24 +41,31 @@ public class PasswordManager {
 	 }
 		
     /**
-	* @param password is a String to be validated
-	* @return will return an encrypted version of the password as a String
-	*/
+     * Hash password.
+     *
+     * @param username the username
+     * @param password is a String to be validated
+     * @return will return an encrypted version of the password as a String
+     */
   	static public String HashPassword(String username, String password) {
   		return password;
   	}
  
 	/**
-	* @param password as a String to be validated
-	* @return is true if password successfully validates
-	*/
+	 * Validate password.
+	 *
+	 * @param password as a String to be validated
+	 * @return is true if password successfully validates
+	 */
 	static public boolean ValidatePassword(String password) {return true;}
   	
   	/**
-	* @param username is the user name for log in
-	* @param pwd is the user's password for log in
-	* @return is the validation of the login credentials
-	*/
+	   * Validate log in credentials.
+	   *
+	   * @param user the user
+	   * @param pwd is the user's password for log in
+	   * @return is the validation of the login credentials
+	   */
   	static public boolean ValidateLogInCredentials(User user, String pwd) {
   		return user.getPassword().equals(HashPassword(user.getUserName(), pwd));
   	}

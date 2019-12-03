@@ -5,6 +5,7 @@ import org.json.*;
 
 import utils.JSONTranslator;
 
+// TODO: Auto-generated Javadoc
 /**
  * A run-time representation of an Organization persistent object. 
  * This class is used as an intermediary for creation, retrieval, and 
@@ -13,11 +14,19 @@ import utils.JSONTranslator;
  */
 public class Organization {
 	
+	/** The name. */
 	protected String name;
+	
+	/** The description. */
 	protected String description;
+	
+	/** The privacy. */
 	protected String privacy;
+	
+	/** The requirements. */
 	protected String requirements;
 		
+	/** The json translation. */
 	private JSONObject jsonTranslation;
 	
 	
@@ -27,6 +36,13 @@ public class Organization {
 	 */
 	protected Organization() {}
 	
+	/**
+	 * Creates an Organization from the target ResultSet. 
+	 * @param results
+	 * 		the result set.
+	 * @throws Exception
+	 * 		thrown if there's an error, like using the incorrect entry.
+	 */
 	protected Organization(ResultSet results) throws Exception
 	{
 		try
@@ -40,12 +56,19 @@ public class Organization {
 		
 	}
 	
+	/**
+	 * Gets the JSON object.
+	 *
+	 * @return the json translation of this Organization.
+	 */
 	protected JSONObject getJSONObject()
 	{
 		return this.jsonTranslation;
 	}
 
 	/**
+	 * Gets the name.
+	 *
 	 * @return the name
 	 */
 	public String getName() {
@@ -53,6 +76,8 @@ public class Organization {
 	}
 
 	/**
+	 * Gets the description.
+	 *
 	 * @return the description
 	 */
 	public String getDescription() {
@@ -60,6 +85,8 @@ public class Organization {
 	}
 
 	/**
+	 * Gets the privacy.
+	 *
 	 * @return the privacy
 	 */
 	public String getPrivacy() {
@@ -67,6 +94,8 @@ public class Organization {
 	}
 
 	/**
+	 * Gets the requirements.
+	 *
 	 * @return the requirements
 	 */
 	public String getRequirements() {
@@ -74,6 +103,8 @@ public class Organization {
 	}
 
 	/**
+	 * Gets the json translation.
+	 *
 	 * @return the jsonTranslation
 	 */
 	public JSONObject getJsonTranslation() {

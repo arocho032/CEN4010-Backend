@@ -1,5 +1,6 @@
 package security;
 
+// TODO: Auto-generated Javadoc
 /**
  * A Singleton dealing with access control actions. It implements 
  * most of the back-end side of the access policy for SOS and host
@@ -22,6 +23,8 @@ public class AccessManager {
  	static private AccessManager _instance = null;
 	
 	/**
+	 * Instance.
+	 *
 	 * @return The unique instance of this
 	 * class.
 	 */
@@ -33,9 +36,11 @@ public class AccessManager {
 	 }
 
 	/**
-	* @return The result of privilege check for the current user
-	* class.
-	*/
+	 * Check privileges.
+	 *
+	 * @return The result of privilege check for the current user
+	 * class.
+	 */
     public boolean CheckPrivileges() {return false;}
 
 }

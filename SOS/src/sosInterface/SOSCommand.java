@@ -14,8 +14,13 @@ import sosInterface.SOSDispatcher.REQUEST_TYPES;
 import sosInterface.socket.SOSEventListener;
 import user.UserManager;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class SOSCommand.
+ */
 public abstract class SOSCommand {
 
+	/** The implemented. */
 	private static REQUEST_TYPES[] implemented = { 
 			REQUEST_TYPES.CREATE_USER,
 			REQUEST_TYPES.CREATE_ORG, 
@@ -38,27 +43,77 @@ public abstract class SOSCommand {
 			REQUEST_TYPES.UPDATE_USER,
 	};
 	
+	/** The client. */
 	protected SocketIOClient client;
+	
+	/** The error status. */
 	protected String errorStatus = null;
+	
+	/** The error payload. */
 	protected JSONObject errorPayload = null;
+	
+	/**
+	 * Creates an SOSCommand Object which will report to the given client.
+	 * @param client
+	 * 		the client for this SOSCommand.
+	 */
 	protected SOSCommand(SocketIOClient client) {
 		this.client = client;
 	};
 	
+	/**
+	 * Executes the command. Must be implemeted by subclasses.
+	 *
+	 * @return 		true if the command executed successfully, false otherwise.
+	 * @throws RuntimeException the runtime exception
+	 */
 	abstract public boolean execute() throws RuntimeException;
 	
+	/**
+	 * Returns the stored error status, which is set by the 
+	 * execute function in case of errors.
+	 *
+	 * @return the string
+	 */
 	public String errorStatus() {
 		return this.errorStatus;
 	}
 	
+	/**
+	 * Reports a failure to the client, with the given payload.
+	 * @param errorPayload
+	 * 			the failure body.
+	 */
 	protected void failWith(JSONObject errorPayload) {
 		SOSEventListener.doSendEvent(client, errorPayload);
 	}
 	
+	/**
+	 * Reports a success to the client, with the given payload.
+	 * @param successPayload
+	 * 		the payload of the success.
+	 */
 	protected void succeedWith(JSONObject successPayload) {
 		SOSEventListener.doSendEvent(client, successPayload);
 	}
 	
+	/**
+	 * Creates a Command subclass which implements one of the commands
+	 * of the server. The list of commands can be seen in the
+	 * SOSDispatcher.REQUEST_TYPES enumeration. 
+	 * 
+	 * Each subclass implements the execute function which instantiates
+	 * and calls the relevant action on the managers of the relevant classes.
+	 * 
+	 * @param request
+	 * 		the request type.
+	 * @param client
+	 * 		the client to be passed.
+	 * @param payload
+	 * 		the payload of the request.
+	 * @return
+	 * 		the SOSCommand object implementing the dispatchable action. 
+	 */
 	public static SOSCommand createCommand(REQUEST_TYPES request, SocketIOClient client, JSONObject payload) {
 		if(!Arrays.asList(implemented).contains(request))
 			throw new IllegalArgumentException("Request not implemented.");

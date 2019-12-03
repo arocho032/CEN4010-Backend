@@ -60,6 +60,11 @@ public class UserManager {
 		return _instance;
 	}
 
+	
+	public static void main(String[] args) {
+		System.out.println(instance().LoadUser(null));
+	}
+	
 	/**
 	 * Creates a User from a database-format entry. Done by
 	 * calling the UserLoader class.
@@ -73,14 +78,12 @@ public class UserManager {
 		try {
 			String username = payload.getJSONObject("user").getString("username");
 			ResultSet user = ds.retrieveUserByUsername(username);
-			if(user == null) {
+			if(!user.next()) {
 				ret.put("error", "true");
 				ret.put("type", "usernotfoundError");
 			} else {
-				if(user.next()) {
-					User loadedUser = ul.LoadUser(user);
-					ret.put("user", loadedUser.getJSON());					
-				}
+				User loadedUser = ul.LoadUser(user);
+				ret.put("user", loadedUser.getJSON());	
 			}
 		} catch (JSONException e) {
 			try {
@@ -104,25 +107,29 @@ public class UserManager {
 	
 	}
 	
+	/**
+	 * Checks if the parameters given by a log-in attempt are valid,
+	 * and returns the user information if so.
+	 */
 	public JSONObject login(JSONObject payload) {
 		JSONObject ret = new JSONObject();
 		try {
 			String username = payload.getJSONObject("user").getString("username");
 			String password = payload.getJSONObject("user").getString("password");
 			ResultSet user = this.ds.retrieveUserByUsername(username);
-			if(user == null) {
+			System.out.println(user);
+
+			if(!user.next()) {
 				ret.put("error", "true");
 				ret.put("type", "usernotfoundError");
 			} else {
-				if(user.next()) {					
-					User loadedUser = ul.LoadUser(user);
-					if (!PasswordManager.ValidateLogInCredentials(loadedUser, password)) {
-						ret.put("error", "true");
-						ret.put("type", "invalidcredentials");
-					} else {
-						ret.put("type", "doLogin");
-						ret.put("user", loadedUser.getJSON());
-					}
+				User loadedUser = ul.LoadUser(user);
+				if (!PasswordManager.ValidateLogInCredentials(loadedUser, password)) {
+					ret.put("error", "true");
+					ret.put("type", "invalidcredentials");
+				} else {
+					ret.put("type", "doLogin");
+					ret.put("user", loadedUser.getJSON());
 				}
 			}
 		} catch (JSONException e) {
@@ -159,24 +166,22 @@ public class UserManager {
 		JSONObject ret = new JSONObject();
 		try {						
 			ResultSet user = this.ds.retrieveUserDetails(json.getInt("user_id"));
-			if(user == null) {
+			if(!user.next()) {
 				ret.put("error", "true");
 				ret.put("type", "usernotfoundError");
 			} else {
-				if(user.next()) {
-					User loadedUser = ul.LoadUser(user);
-					if(!PasswordManager.instance().ValidateLogInCredentials(loadedUser, json.getString("password")))
-						return null;
-					
-					up.ChangeUser(loadedUser, up.makeUpdatesMap(json.getJSONObject("update"))); 
-					ds.updateUserInformation(loadedUser);
-					return ret;
-				}
+				User loadedUser = ul.LoadUser(user);
+				if(!PasswordManager.instance().ValidateLogInCredentials(loadedUser, json.getString("password")))
+					return null;
+				
+				up.ChangeUser(loadedUser, up.makeUpdatesMap(json.getJSONObject("update"))); 
+				ds.updateUserInformation(loadedUser);
+				return ret;
 			}
 		} catch (JSONException e) {
 			try {
 				ret.put("error", "true");
-				ret.put("type", "usernameValueError");
+				ret.put("type", "userupdateValueError");
 			} catch (JSONException e1) {
 				e1.printStackTrace();
 			}
@@ -249,7 +254,9 @@ public class UserManager {
 		return ret;
 	}
 	
-	
+	/**
+	 * Returns all the members of a given organization.
+	 */
 	public JSONObject getMembersOfOrganization(JSONObject payload) {
 		JSONObject ret = new JSONObject();
 		try {

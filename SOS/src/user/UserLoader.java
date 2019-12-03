@@ -2,6 +2,7 @@ package user;
 
 import java.sql.*;
 
+// TODO: Auto-generated Javadoc
 /**
  * A class which creates a User object from a database-format User 
  * object (e.g., a SQL Table entry for User). This class decouples 
@@ -11,8 +12,12 @@ import java.sql.*;
  */
 public class UserLoader {
 	
+	/** The user. */
 	private User user;
 	
+	/**
+	 * Instantiates a new user loader.
+	 */
 	public UserLoader()
 	{
 		user = null;
@@ -20,8 +25,10 @@ public class UserLoader {
 	
 	/**
 	 * Creates a User from a database-format entry.
+	 *
 	 * @param results The set of details found in the storage of the SOS.
-	 * @return	a User object with the given attributes.
+	 * @return a User object with the given attributes.
+	 * @throws Exception the exception
 	 */
 	public User LoadUser(ResultSet results) throws Exception
 	{

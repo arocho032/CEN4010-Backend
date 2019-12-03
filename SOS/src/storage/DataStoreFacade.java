@@ -8,6 +8,7 @@ import event.Event;
 import organization.Organization;
 import user.User;
 
+// TODO: Auto-generated Javadoc
 ///**
 // * A Façade object that acts as the interface for the SOS 
 // * Storage subsystem. The other subsystems interact with 
@@ -20,10 +21,16 @@ import user.User;
 // * and through the SOS Data Store Façade we can decouple the 
 // * details of the database component (such as the SQL language) 
 // * from the rest of the system.
+/**
+ * The Class DataStoreFacade.
+ */
 // */
 public class DataStoreFacade {
 	
+	/** The connect. */
 	private Connection connect = null;
+	
+	/** The password. */
 	final private String password = "SOSDBCEN4010";
 	
 	
@@ -125,19 +132,6 @@ public class DataStoreFacade {
 		}
 	}
 	
-	public static void main(String[] args) throws Exception {
-		DataStoreFacade ds = new DataStoreFacade();
-		ResultSet rs = ds.retrieveUserByUsername("jdoe001");
-        String arr = null;
-        while (rs.next()) {
-           int v = rs.getInt("user_id");
-           String em = rs.getString("email");
-           arr = em.replace("\n", ", ");
-        }	
-        
-        
-	}
-	
 	/**
 	 * Allows the user to join an organization.
 	 * @param userID The ID of the user that wants to join an organization.
@@ -216,7 +210,8 @@ public class DataStoreFacade {
 	
 	
 	/**
-	 * Retrieves all the organizations which the user belongs to,
+	 * Retrieves all the organizations which the user belongs to,.
+	 *
 	 * @param userID The ID of the user that we want all the organizations for.
 	 * @return A set of organizations which the user belongs to within the SOS.
 	 * @throws Exception Throws an exception if their is an error with the connectivity to the storage of the system.
@@ -244,11 +239,8 @@ public class DataStoreFacade {
 	
 	/**
 	 * Registers a new user for the SOS system.
-	 * @param encryptedPassword An encrypted string that represents the user's password.
-	 * @param email The email the user is registering under.
-	 * @param name The user's name.
-	 * @param userName The user's name.
-	 * @throws Exception An exception is thrown when the new user information fails to be stored in the SOS database.
+	 *
+	 * @param user the user
 	 */
 	public void registerNewUser(User user)
 	{
@@ -271,15 +263,8 @@ public class DataStoreFacade {
 	
 	/**
 	 * Creates a new event in the SOS system.
-	 * @param name The name of the event.
-	 * @param longCoordinate The longitude of the location where the event will take place.
-	 * @param latCoordinate The latitude of the location where the event will take place.
-	 * @param description The description of the event.
-	 * @param visibility The visibility of the event: True is visible, False is not visible
-	 * @param time The time when the event will take place.
-	 * @param date The date when the event will take place.
-	 * @param eventType The type of event being hosted.
-	 * @param hostedBy The organization that is hosting the event.
+	 *
+	 * @param event the event
 	 * @throws Exception Throws an exception if the parameters are not in the expected format and if the organization hosting the event no longer exists.
 	 */
 	public void createNewEvent(Event event) throws Exception
@@ -321,7 +306,8 @@ public class DataStoreFacade {
 	
 	
 	/**
-	 * Returns a list of JSON objects 
+	 * Returns a list of JSON objects .
+	 *
 	 * @param lat_coordinate The latitude of the location of interest.
 	 * @param long_coordinate The longitude of the location of interest.
 	 * @return The results from the database of the closest events.
@@ -376,6 +362,13 @@ public class DataStoreFacade {
 		}
 	}
 	
+	/**
+	 * Returns the Events of the given Organization.
+	 *
+	 * @param orgID 		the id of the organization.
+	 * @return 		the ResultSet containing the event entries. 
+	 * @throws Exception the exception
+	 */
 	public ResultSet getEventsByOrganization(int orgID) throws Exception
 	{
 		try
@@ -394,6 +387,13 @@ public class DataStoreFacade {
 		}
 	}
 	
+	/**
+	 * Returns the Events attended by the given user.
+	 *
+	 * @param userID 		the user id
+	 * @return 		a ResultSet containing the target events
+	 * @throws Exception the exception
+	 */
 	public ResultSet getEventsByUser(int userID) throws Exception
 	{
 		try
@@ -413,6 +413,13 @@ public class DataStoreFacade {
 	}
 	
 	
+	/**
+	 * Retrieves an user entry from its unique username. User for login in moslty.
+	 *
+	 * @param username 		the username of the user
+	 * @return 		the result set containing the user entry.
+	 * @throws Exception the exception
+	 */
 	public ResultSet retrieveUserByUsername(String username) throws Exception {
 		
 		try
@@ -485,10 +492,8 @@ public class DataStoreFacade {
 	
 	/**
 	 * Creates a new organization on the SOS system.
-	 * @param name The name of the organization.
-	 * @param description The description of the organization.
-	 * @param privacy The privacy of the organization (PUBLIC or PRIVATE).
-	 * @param requirements The requirements for joining the organization.
+	 *
+	 * @param org the org
 	 * @param userID The user ID of the user creating the organization.
 	 * @throws Exception Throws an exception if there is an issue storing the organization into the database.
 	 */
@@ -542,10 +547,9 @@ public class DataStoreFacade {
 	}
 	
 	/**
-	 * Updates the information of the user to the given information
-	 * @param userID The ID of the user that will be updated in the database.
-	 * @param email The modified email assigned to the user in the database.
-	 * @param privacy The modified privacy assigned to the user in the database.
+	 * Updates the information of the user to the given information.
+	 *
+	 * @param user the user
 	 * @throws Exception If the email is already present in the database under a different user then an exception is thrown.
 	 */
 	public void updateUserInformation(User user) throws Exception
@@ -613,6 +617,13 @@ public class DataStoreFacade {
 		return result;
 	}
 
+	/**
+	 * Retrives all the users which are members of a given organization.
+	 *
+	 * @param organization_id 			the id of the organization.
+	 * @return 			the ResultSet containing the user entries.
+	 * @throws Exception the exception
+	 */
 	public ResultSet retrieveMembersOfOrganization(int organization_id) throws Exception {
 		try
 		{

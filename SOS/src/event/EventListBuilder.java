@@ -4,6 +4,7 @@ import storage.DataStoreFacade;
 import java.sql.*;
 
 
+// TODO: Auto-generated Javadoc
 /**
  * A Builder which creates new EventList objects. As other builders, it is 
  * used to decouple the process of creating a new EventList from the actual 
@@ -12,6 +13,7 @@ import java.sql.*;
  */
 public class EventListBuilder {
 	
+	/** The list. */
 	private EventList list;
 	
 	/**
@@ -22,7 +24,13 @@ public class EventListBuilder {
 		list = null;
 	}
 	
-    
+    /**
+     * Creates an EventList with all the events in the given result set.
+     *
+     * @param set 			the result set
+     * @return 			the EventList
+     * @throws Exception the exception
+     */
     public EventList getAllAvailableEvents(ResultSet set) throws Exception
     {
     	try

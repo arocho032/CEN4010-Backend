@@ -2,6 +2,7 @@ package organization;
 
 import java.sql.*;
 
+// TODO: Auto-generated Javadoc
 /**
  * A class which creates an Organization object from an Organization 
  * database object. This class decouples the parsing from the database 
@@ -10,13 +11,15 @@ import java.sql.*;
  */
 public class OrganizationLoader {
 	
+	/** The organization. */
 	private Organization organization;
 
 	/**
 	 * Creates a Organization from a database-format entry.
-	 * @param sqlEntry
-	 * 		a sql entry for the given organization.
-	 * @return	a Organization object with the given attributes.
+	 *
+	 * @param set the set
+	 * @return a Organization object with the given attributes.
+	 * @throws Exception the exception
 	 */
 	public Organization LoadOrganization(ResultSet set) throws Exception
 	{

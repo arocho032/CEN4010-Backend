@@ -7,6 +7,7 @@ import java.util.Map;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+// TODO: Auto-generated Javadoc
 /**
  * A class which deals with User modifications. User modifications 
  * are done on the system logic-level User object first and are only 
@@ -20,11 +21,9 @@ public class UserUpdater {
 	
 	/**
 	 * Updates a User object with the given changes.
-	 * @param user
-	 * 		the User that will be updated.
-	 * @param change
-	 * 		a Map where the key is the variable
-	 * 		name and the value is the update.
+	 *
+	 * @param user 		the User that will be updated.
+	 * @param update the update
 	 */
 	public void ChangeUser(User user, Map<String, String> update) {
 		if(update.containsKey("email"))
@@ -33,6 +32,12 @@ public class UserUpdater {
 			user.privacy = update.get("privacy");		
 	}
 
+	/**
+	 * Creates an update-map from a json payload.
+	 *
+	 * @param json the json
+	 * @return the map
+	 */
 	public Map<String, String> makeUpdatesMap(JSONObject json) {
 	
 		Map<String, String> update = new HashMap<>();

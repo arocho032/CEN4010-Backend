@@ -7,6 +7,7 @@ import java.sql.ResultSet;
 
 import org.json.*;
 
+// TODO: Auto-generated Javadoc
 /**
  * EventManager, which is a Singleton which manages all the Event functions. 
  * This class receives dispatched actions from the SOS Dispatcher and completes 
@@ -20,8 +21,13 @@ import org.json.*;
  */
 public class EventManager {
 
+	/** The ds. */
 	DataStoreFacade ds;
+	
+	/** The el. */
 	EventLoader el;
+	
+	/** The elb. */
 	EventListBuilder elb;
 	
 	/**
@@ -45,6 +51,8 @@ public class EventManager {
  	static private EventManager _instance = null;
 	
 	/**
+	 * Instance.
+	 *
 	 * @return The unique instance of this
 	 * class.
 	 */
@@ -56,10 +64,11 @@ public class EventManager {
 	 }
 
 	 /**
-	  * Retrieves a list of events that are stored in the database.
-	  * @return A JSON array of events.
-	  * @throws Exception Throws an exception if anything fails while attempting to retrieve the events.
-	  */
+ 	 * Retrieves a list of events that are stored in the database.
+ 	 *
+ 	 * @param payload the payload
+ 	 * @return A JSON array of events.
+ 	 */
 	 public JSONObject retrieveListOfEvents(JSONObject payload)
 	 {
 			JSONObject ret = new JSONObject();
@@ -90,9 +99,17 @@ public class EventManager {
 		 		 
 	 }
 	 
+	 /**
+	  * Retrieves a list of Event given a location.
+	  * @param payload
+	  * 	A JSONObject with the following keys:
+	  * 		lantitude	the latitute of the search center
+	  * 		longitude	the longitude of the search center
+	  * @return
+	  * 	All events within 0.5 latitude/longitude range from the given center.
+	  */
 	 public JSONObject retrieveListOfEventsByLocation(JSONObject payload)
 	 {
-		 
 		 
 			JSONObject ret = new JSONObject();
 			try {
@@ -125,9 +142,9 @@ public class EventManager {
 	/**
 	 * Creates a new Event from a json Event description. Done by
 	 * calling the EventBuilder class.
-	 * @param json2
-	 * 		the JSON object describing the new Event. 
-	 * throws @Exception Throws exception when the fields given to create the event are invalid.
+	 *
+	 * @param json the json
+	 * @return the JSON object
 	 */ 
 	 public JSONObject createEvent(JSONObject json) {
 		 
@@ -189,11 +206,11 @@ public class EventManager {
 	 }
 	 
 	 /**
-	  * Gets event information based on the ID that is provided.
-	  * @param payload The ID of the event that details are being requested.
-	  * @return A JSON object with the event details.
-	  * @throws Exception An exception is thrown if the event is not found in the database.
-	  */
+ 	 * Gets event information based on the ID that is provided.
+ 	 *
+ 	 * @param payload The ID of the event that details are being requested.
+ 	 * @return A JSON object with the event details.
+ 	 */
 	 public JSONObject loadEventDetails(JSONObject payload) 
 	 {
 		 
@@ -228,10 +245,11 @@ public class EventManager {
 	 }
 	 
 	 /**
-	  * Cancels the given event.
-	  * @param payload The event that is going to be cancelled.
-	  * @throws Exception Throws an exception if the event is not found in the database.
-	  */
+ 	 * Cancels the given event.
+ 	 *
+ 	 * @param payload The event that is going to be cancelled.
+ 	 * @return the JSON object
+ 	 */
 	 public JSONObject cancelEvent(JSONObject payload)
 	 {
 		 
@@ -264,13 +282,12 @@ public class EventManager {
 	 }
 	 
 	 /**
-	  * Marks a User as attending an Event by creating an entry on the 
-	  * Attendance table.
-	  * @param user_id
-	  * 	the id of the User
-	  * @param event_id
-	  * 	the id of the Event
-	  */
+ 	 * Marks a User as attending an Event by creating an entry on the 
+ 	 * Attendance table.
+ 	 *
+ 	 * @param payload the payload
+ 	 * @return the JSON object
+ 	 */
 	 public JSONObject markAttendance(JSONObject payload)
 	 {
 			JSONObject ret = new JSONObject();
@@ -300,6 +317,15 @@ public class EventManager {
 
 	 }
 
+	 /**
+	  * Returns all the Events hosted by a given Organization.
+	  * @param payload
+	  * 	A JSONObject which containts the following keys:
+	  * 		organization	a JSONObject with the following keys:
+	  * 			organization_id		which is the id of the target organization.
+	  * @return
+	  * 	All events hosted by the organization.
+	  */
 	public JSONObject getEventOfOrganization(JSONObject payload) {
 		
 		JSONObject ret = new JSONObject();
