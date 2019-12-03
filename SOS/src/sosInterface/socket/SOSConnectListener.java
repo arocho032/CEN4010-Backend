@@ -18,29 +18,29 @@ public class SOSConnectListener implements ConnectListener {
 	@Override
 	public void onConnect(SocketIOClient client) {
 		
-//		try {
-//			JSONObject trans = new JSONObject();
-//			String cert = TransferManager.instance().getSharableCertificate();
-//			JSONObject data = new JSONObject();
-//			data.put("certificate", cert);
-//			
-//			trans.put("type", "sos/app/ON_HANDSHAKE_REQUEST");
-//			trans.put("data", data.toString());
-//			
-//			AckCallback<String> cback = new AckCallback<String>(String.class) {
-//				@Override
-//				public void onSuccess(String result) {
-//					lg.info("Got AckCallback");					
-//					TransferManager.instance().setCertificateEntry(result, client.getSessionId().toString());
-//				}
-//			};			
-//
-//			client.sendEvent("action", cback, trans.toString());
-//			lg.info("New client conencted to the server.");
-//									
-//		} catch (JSONException e) {
-//			e.printStackTrace();
-//		}
+		try {
+			JSONObject trans = new JSONObject();
+			String cert = TransferManager.instance().getSharableCertificate();
+			JSONObject data = new JSONObject();
+			data.put("certificate", cert);
+			
+			trans.put("type", "sos/app/ON_HANDSHAKE_REQUEST");
+			trans.put("data", data.toString());
+			
+			AckCallback<String> cback = new AckCallback<String>(String.class) {
+				@Override
+				public void onSuccess(String result) {
+					lg.info("Got AckCallback");					
+					TransferManager.instance().setCertificateEntry(result, client.getSessionId().toString());
+				}
+			};			
+
+			client.sendEvent("action", cback, trans.toString());
+			lg.info("New client conencted to the server.");
+									
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
 
 	}
 

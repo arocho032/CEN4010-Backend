@@ -6,6 +6,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -27,7 +28,10 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import io.netty.handler.codec.base64.Base64Encoder;
@@ -83,15 +87,40 @@ public class TransferManager {
 	 * @param msg
 	 * 		the input to be encrypted and encoded.
 	 * @return
-	 * 		the Base64 encoding for the given input.
+	 * 		the JSONObject containing:
+	 * 			'key'	the encrypted key parameter, decryptable with the target's private key.
+	 * 			'iv'	the encrypted iv parameter, decryptable with the target's private key.
+	 * 			'text'	the encrypted text, decrypateble with a AES/CBC/PKCS7Padding using the given key and iv. 
 	 */
-	public String encryptMessage(String msg, String alias) {
-		String ret = null;
+	public JSONObject encryptMessage(String msg, String alias) {
+		JSONObject retJSON = null;
 		try {
+
+			byte[] iv  = new byte[16];
+			byte[] key = new byte[16];
+
+			SecureRandom r = new SecureRandom();
+			r.nextBytes(iv);
+			r.nextBytes(key);
+			IvParameterSpec ivPS = new IvParameterSpec(iv);
+			
+			// Encrypt Key using Pu/Pr
 			this.cipher.init(Cipher.ENCRYPT_MODE, this.keystore.getCertificate(alias));
+			byte[] keycipher = this.cipher.doFinal(key);
+			byte[] ivcipher = this.cipher.doFinal(iv);
+			
+			SecretKeySpec secretKeySpec = new SecretKeySpec(key, "AES");			
+			Cipher sCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+			sCipher.init(Cipher.ENCRYPT_MODE, secretKeySpec, ivPS);
+
 			byte[] plaintext = msg.getBytes("UTF-8");
-			byte[] ciphertext = this.cipher.doFinal(plaintext);
-			ret = Base64.getEncoder().encodeToString(ciphertext);
+			byte[] ciphertext = sCipher.doFinal(plaintext);
+			
+			retJSON = new JSONObject();
+			retJSON.put("key", Base64.getEncoder().encodeToString(keycipher));
+			retJSON.put("iv", Base64.getEncoder().encodeToString(ivcipher));
+			retJSON.put("text", Base64.getEncoder().encodeToString(ciphertext));
+			
 		} catch (IllegalBlockSizeException | BadPaddingException e) {
 			e.printStackTrace();
 		} catch (InvalidKeyException e) {
@@ -100,22 +129,50 @@ public class TransferManager {
 			e.printStackTrace();
 		} catch (KeyStoreException e) {
 			e.printStackTrace();
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		} catch (NoSuchPaddingException e) {
+			e.printStackTrace();
+		} catch (InvalidAlgorithmParameterException e) {
+			e.printStackTrace();
+		} catch (JSONException e) {
+			e.printStackTrace();
 		}
-		return ret;
+		return retJSON;
 	}
 	
-	public String decryptMessage(String msg) {
+	public String decryptMessage(JSONObject msg) {
 		String ret = null;
 		try {
+			
 			this.cipher.init(Cipher.DECRYPT_MODE, this.getPrivateKey());
-			byte[] ciphertext = Base64.getDecoder().decode(msg);
-			byte[] plaintext = this.cipher.doFinal(ciphertext);
-			ret = new String(plaintext);
+			byte[] iv  = this.cipher.doFinal(Base64.getDecoder().decode(msg.getString("iv")));
+			byte[] key = this.cipher.doFinal(Base64.getDecoder().decode(msg.getString("key")));
+			
+			Cipher sCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+			SecretKeySpec sks = new SecretKeySpec(key, "AES");
+	        IvParameterSpec ivp = new IvParameterSpec(iv);			
+			sCipher.init(Cipher.DECRYPT_MODE, sks, ivp);
+				
+			byte[] ciphertext = Base64.getDecoder().decode(msg.getString("text"));
+			byte[] plaintext = sCipher.doFinal(ciphertext);
+			ret = new String(plaintext, "UTF-8");
+		
 		} catch (InvalidKeyException e) {
 			e.printStackTrace();
 		} catch (IllegalBlockSizeException e) {
 			e.printStackTrace();
 		} catch (BadPaddingException e) {
+			e.printStackTrace();
+		} catch (JSONException e) {
+			e.printStackTrace();
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		} catch (NoSuchPaddingException e) {
+			e.printStackTrace();
+		} catch (InvalidAlgorithmParameterException e) {
+			e.printStackTrace();
+		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		}
 		return ret;
@@ -176,17 +233,8 @@ public class TransferManager {
 	public static void main(String[] args) throws KeyStoreException {
 		TransferManager tm = TransferManager.instance();
 		String alias = "mykey";
-		String plain = "Test plain text";
-		String tc = tm.encryptMessage(plain, alias);
-		System.out.println(tc);
-		System.out.println(tm.decryptMessage(tc));
-		
-		String cipher = "Ovns33F7qJ6UUVqTtbUdpcaxmRFm5nakUA4tk4kgu5xpoe+3o9qSBdXnKqcs90a4SRMFiyWDAlwkk9CoGKkCF9Nz6433dcteG0QTFTf1DI3BjYgl7dN7k8BPa4SbiGIgXnIf2gYmx6kKoJRFbH29HWYNW1yrnAHKctLXjX0pL4Ma4G5n4PayxpgC2pLVD4MOEc9dfHIDKXoD0XnK/b5HNVARxSGvtRuJm6XXZeoEIiaU7o7TehpeL82xixT+dnW4v0jAptEH1tpk3aZHVZh+hMDLur9WyYUT9Q+zaPE6L3lEtiOaaKblpKpDw/Nprb+wcRu21HMr297y/vnEirbQdg==";
-		System.out.println(tm.keystore.aliases().toString());
-		
-		System.out.println(tm.decryptMessage(cipher));
-		
-		
+		String plain = "7.2.	Subsystem Tests – test at least one subsystem using test cases derived from the systems test cases.  This will involve the creation of a test driver i.e. a main in the package containing the subsystem and one or more stubs.  Use a similar format to that in section 7.1 to document the tests performed.  Include the code for the test driver in appendix E. You must use a unit testing tool and a code coverage tool.";
+		JSONObject tc = tm.encryptMessage(plain, alias);		
 	}
 	
 }

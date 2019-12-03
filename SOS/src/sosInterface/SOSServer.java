@@ -45,8 +45,10 @@ public class SOSServer {
 			config.setHostname(hostName);
 			config.setPort(portNumber);
 			config.setOrigin("http://localhost:3000");
+			
 			server =  new SocketIOServer(config);
 			lg = LoggerFactory.getLogger(SOSServer.class);
+			
 		}
 		catch(Exception ex)
 		{

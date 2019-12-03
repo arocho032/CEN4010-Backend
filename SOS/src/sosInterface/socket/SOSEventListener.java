@@ -14,13 +14,13 @@ public abstract class SOSEventListener implements DataListener<String> {
 	public void onData(final SocketIOClient client, String cipher, final AckRequest ackRequest) {
 		
 		try {
-//			String plain = TransferManager
-//								.instance()
-//								.decryptMessage(cipher);
-//			this.doOnData(client, new JSONObject(plain), ackRequest);
+			String plain = TransferManager
+								.instance()
+								.decryptMessage(new JSONObject(cipher));
+			this.doOnData(client, new JSONObject(plain), ackRequest);
 			
 			System.out.println(cipher);
-			this.doOnData(client, new JSONObject(cipher), ackRequest);
+			System.out.println(plain);
 
 		} catch (JSONException e) {
 			e.printStackTrace();
@@ -30,10 +30,10 @@ public abstract class SOSEventListener implements DataListener<String> {
 	}
 
 	public static void doSendEvent(SocketIOClient client, JSONObject data) {
-//		String payload = TransferManager.instance().encryptMessage(data.toString(), client.getSessionId().toString());
-//		client.sendEvent("action", payload);	
+		JSONObject payload = TransferManager.instance().encryptMessage(data.toString(), client.getSessionId().toString());
+		client.sendEvent("action", payload.toString());	
 		
-		client.sendEvent("action", data.toString());
+//		client.sendEvent("action", data.toString());
 	
 	}
 	

@@ -13,7 +13,7 @@ public class SOSServer_Driver {
 		lg.info("Starting the SOS Server.");
 	
 		try {
-			SOSServer server = SOSServer.instance(Constants.SERVER_HOSTNAME, Constants.SERVER_PORT);	
+			SOSServer server = SOSServer.instance("0.0.0.0", Constants.SERVER_PORT);	
 			server.ListenForEvents();
 		} catch(Exception ex) {
 			lg.error("Error:", ex);
