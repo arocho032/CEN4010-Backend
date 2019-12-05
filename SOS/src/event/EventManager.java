@@ -12,7 +12,7 @@ import org.json.*;
  * EventManager, which is a Singleton which manages all the Event functions. 
  * This class receives dispatched actions from the SOS Dispatcher and completes 
  * that action using objects internal to its subsystem. It also is in charge of 
- * interacting with the SOS Data Store Façade directly. Part of the role of this 
+ * interacting with the SOS Data Store Faï¿½ade directly. Part of the role of this 
  * class is to parse front-end format data (e.g., JSON-String description of new 
  * Events) and calling the appropriate functions on other classes according to that 
  * data. It is also in charge of encoding Event objects into database-format (e.g., 
@@ -316,6 +316,13 @@ public class EventManager {
 			return ret;
 
 	 }
+	 
+	 public static void main(String[] args) throws JSONException {
+		 System.out.println("Test");
+		 System.out.println(
+				 EventManager.instance().getEventOfOrganization(new JSONObject("{\"organization\":{\"startIndex\":0,\"organization_id\":\"3\"}}\r\n"))
+		 );
+	 }
 
 	 /**
 	  * Returns all the Events hosted by a given Organization.
@@ -338,15 +345,8 @@ public class EventManager {
 				int skip = payload.getJSONObject("organization").getInt("startIndex");
 				int count = 20;
 				
-				JSONArray members = new JSONArray();
-				while(set.next()) {
-					Event loadedEvent = el.loadEventDetails(set);
-					if(loadedEvent != null) {
-						members.put(loadedEvent.getJSON());
-					} else break;
-					
-				}
-				
+				JSONArray members = this.elb.getAllAvailableEvents(set).returnJSONList();
+
 				set.close();
 				ret.put("data", members.toString());
 				
