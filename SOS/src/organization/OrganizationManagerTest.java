@@ -78,7 +78,6 @@ class OrganizationManagerTest {
 			ret = om.loadOrganizationDetails(new JSONObject("{organization:{organization_id:1}}"));
 			assertEquals("error message", true, ret.has("user"));
 			
-			
 			// 1	Fishing John's	A fishing club.	PUBLIC	Must own fishing rod
 			JSONObject org = ret.getJSONObject("data");
 			System.out.println(org.toString());
